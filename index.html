@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Auto88Group Cars</title>
+    <script src="//unpkg.com/alpinejs" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  </head>
+  <body class="bg-gray-100 p-6" x-data="carApp()">
+    <!-- Input Token -->
+    <template x-if="!token">
+      <div class="mb-4 p-4 bg-white rounded shadow">
+        <label class="block mb-2 font-semibold">Masukkan Bearer Token</label>
+        <input
+          x-model="tokenInput"
+          type="text"
+          class="border p-2 w-full mb-2"
+        />
+        <button
+          @click="saveToken()"
+          class="bg-blue-500 text-white px-4 py-2 rounded"
+        >
+          Simpan Token
+        </button>
+      </div>
+    </template>
+
+    <!-- Token Actions -->
+    <div
+      class="space-y-3"
+      x-data="{ 
+    token: true, 
+    showActions: false 
+}"
+    >
+      <button
+        @click="showActions = !showActions"
+        class="p-2 text-xs font-medium text-center text-white bg-neutral-700 rounded-full hover:bg-neutral-800 focus:ring-4 focus:outline-none focus:ring-neutral-300"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          class="size-3"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M7.84 1.804A1 1 0 0 1 8.82 1h2.36a1 1 0 0 1 .98.804l.331 1.652a6.993 6.993 0 0 1 1.929 1.115l1.598-.54a1 1 0 0 1 1.186.447l1.18 2.044a1 1 0 0 1-.205 1.251l-1.267 1.113a7.047 7.047 0 0 1 0 2.228l1.267 1.113a1 1 0 0 1 .206 1.25l-1.18 2.045a1 1 0 0 1-1.187.447l-1.598-.54a6.993 6.993 0 0 1-1.929 1.115l-.33 1.652a1 1 0 0 1-.98.804H8.82a1 1 0 0 1-.98-.804l-.331-1.652a6.993 6.993 0 0 1-1.929-1.115l-1.598.54a1 1 0 0 1-1.186-.447l-1.18-2.044a1 1 0 0 1 .205-1.251l1.267-1.114a7.05 7.05 0 0 1 0-2.227L1.821 7.773a1 1 0 0 1-.206-1.25l1.18-2.045a1 1 0 0 1 1.187-.447l1.598.54A6.992 6.992 0 0 1 7.51 3.456l.33-1.652ZM10 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"
+            clip-rule="evenodd"
+          />
+        </svg>
+      </button>
+
+      <template x-if="token && showActions">
+        <div class="mb-4 flex flex-wrap gap-2 bg-white rounded p-4 shadow">
+          <button
+            @click="fetchCars()"
+            class="bg-green-500 text-white px-4 py-2 rounded"
+          >
+            Ambil Data Mobil
+          </button>
+          <button
+            @click="clearToken()"
+            class="bg-red-500 text-white px-4 py-2 rounded"
+          >
+            Hapus Token
+          </button>
+          <button
+            @click="clearData()"
+            class="bg-yellow-500 text-white px-4 py-2 rounded"
+          >
+            Hapus Data JSON
+          </button>
+        </div>
+      </template>
+    </div>
+
+    <!-- Loading -->
+    <template x-if="loading">
+      <div class="mb-4">Loading data...</div>
+    </template>
+
+    <!-- Tombol Scroll to Top -->
+    <button
+      @click="scrollToTop()"
+      class="fixed bottom-6 right-6 p-2 text-xs font-medium text-center text-white bg-cyan-700 rounded-full hover:bg-cyan-800 focus:ring-4 focus:outline-none focus:ring-cyan-300"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 20 20"
+        fill="currentColor"
+        class="size-5"
+      >
+        <path
+          fill-rule="evenodd"
+          d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm-.75-4.75a.75.75 0 0 0 1.5 0V8.66l1.95 2.1a.75.75 0 1 0 1.1-1.02l-3.25-3.5a.75.75 0 0 0-1.1 0L6.2 9.74a.75.75 0 1 0 1.1 1.02l1.95-2.1v4.59Z"
+          clip-rule="evenodd"
+        />
+      </svg>
+    </button>
+
+    <div x-data="{ showFilter: true }" class="mb-4 bg-white rounded p-4 shadow">
+      <button
+        @click="showFilter = !showFilter"
+        class="w-full text-white bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-cyan-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2"
+        x-text="showFilter ? 'Sembunyikan Filter' : 'Tampilkan Filter'"
+      ></button>
+      <div x-show="showFilter" class="space-y-3 mt-3">
+        <div>
+          <label for="location" class="block text-sm font-medium text-gray-900"
+            >Lokasi</label
+          >
+          <select
+            x-model="searchLocation"
+            id="location"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+          >
+            <option selected>Pilih Lokasi</option>
+            <option value="auto mobil88">Auto Mobil88</option>
+            <option value="autoplaza 88">Autoplaza 88</option>
+            <option value="auto show 88">Auto Show 88</option>
+            <option value="auto 88 parindu (sanggau)">Auto 88 Parindu</option>
+          </select>
+        </div>
+        <div>
+          <label
+            for="first_name"
+            class="block text-sm font-medium text-gray-900"
+            >Model Mobil</label
+          >
+          <input
+            type="text"
+            id="first_name"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+            placeholder="Sigra"
+            x-model="searchModel"
+          />
+        </div>
+        <div>
+          <label for="year" class="block text-sm font-medium text-gray-900"
+            >Tahun</label
+          >
+          <input
+            type="text"
+            id="year"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+            placeholder="2022"
+            x-model="searchYear"
+          />
+        </div>
+        <div>
+          <label for="type" class="block text-sm font-medium text-gray-900"
+            >Tipe</label
+          >
+          <input
+            type="text"
+            id="type"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+            placeholder="M"
+            x-model="searchType"
+          />
+        </div>
+        <div>
+          <label for="series" class="block text-sm font-medium text-gray-900"
+            >Series</label
+          >
+          <input
+            type="text"
+            id="series"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+            placeholder="double cabin"
+            x-model="searchSeries"
+          />
+        </div>
+        <div>
+          <label for="type" class="block text-sm font-medium text-gray-900"
+            >Transmisi</label
+          >
+          <select
+            x-model="searchTransmission"
+            id="countries"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+          >
+            <option selected>Pilih transmisi</option>
+            <option value="manual">Manual</option>
+            <option value="matic">Matic/CVT</option>
+          </select>
+        </div>
+        <div>
+          <label for="fuel" class="block text-sm font-medium text-gray-900"
+            >Bahan Bakar</label
+          >
+          <select
+            x-model="searchFuel"
+            id="fuel"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+          >
+            <option selected>Pilih Bahan Bakar</option>
+            <option value="premium">Premium</option>
+            <option value="diesel">Diesel</option>
+          </select>
+        </div>
+        <div>
+          <label for="color" class="block text-sm font-medium text-gray-900"
+            >Warna</label
+          >
+          <input
+            type="text"
+            id="color"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+            placeholder="Grey"
+            x-model="searchColor"
+          />
+        </div>
+        <div>
+          <label for="gear" class="block text-sm font-medium text-gray-900"
+            >Penggerak</label
+          >
+          <select
+            x-model="searchGear"
+            id="gear"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+          >
+            <option selected>Pilih Penggerak</option>
+            <option value="4x2">4x2</option>
+            <option value="4x4">4x4</option>
+          </select>
+        </div>
+        <div>
+          <label for="dp" class="block text-sm font-medium text-gray-900"
+            >Rentang DP</label
+          >
+          <div class="flex gap-2">
+            <input
+              type="number"
+              id="dpmin"
+              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+              placeholder="1"
+              x-model="dpMin"
+            />
+            <input
+              type="number"
+              id="dpmax"
+              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+              placeholder="7"
+              x-model="dpMax"
+            />
+          </div>
+        </div>
+        <div>
+          <label for="angs" class="block text-sm font-medium text-gray-900"
+            >Rentang Angsuran</label
+          >
+          <div class="flex gap-2">
+            <input
+              type="number"
+              id="angsmin"
+              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+              placeholder="2"
+              x-model="angsMin"
+            />
+            <input
+              type="number"
+              id="angsmax"
+              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+              placeholder="5"
+              x-model="angsMax"
+            />
+          </div>
+        </div>
+        <div>
+          <label for="credit" class="block text-sm font-medium text-gray-900"
+            >Rentang Harga Kredit</label
+          >
+          <div class="flex gap-2">
+            <input
+              type="number"
+              id="creditmin"
+              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+              placeholder="60"
+              x-model="creditMin"
+            />
+            <input
+              type="number"
+              id="creditmax"
+              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+              placeholder="500"
+              x-model="creditMax"
+            />
+          </div>
+        </div>
+        <div>
+          <label for="cash" class="block text-sm font-medium text-gray-900"
+            >Rentang Harga Cash</label
+          >
+          <div class="flex gap-2">
+            <input
+              type="number"
+              id="cashmin"
+              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+              placeholder="60"
+              x-model="cashMin"
+            />
+            <input
+              type="number"
+              id="cashmax"
+              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+              placeholder="500"
+              x-model="cashMax"
+            />
+          </div>
+        </div>
+        <div>
+          <button
+            @click="doSearch()"
+            type="button"
+            class="text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2"
+          >
+            Filter
+          </button>
+          <button
+            @click="clearSearch()"
+            type="button"
+            class="text-white bg-gradient-to-r from-red-400 via-red-500 to-red-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2"
+          >
+            Clear Filter
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card List -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <template x-for="car in result" :key="car.id">
+        <div
+          class="bg-white rounded shadow p-4 w-full"
+          x-data="{  
+           isBlur: false,
+          formatMillion(value) {
+      const num = value / 1000000;
+      const truncated = Math.floor(num * 10) / 10;
+      return Number.isInteger(truncated) ? truncated.toString() : truncated.toFixed(1);
+    }}"
+        >
+          <div
+            class="text-sm font-semibold mb-2"
+            x-text="car.police_number"
+          ></div>
+          <!-- <img :src="imageUrl(car)" class="w-full h-48 object-cover mb-2" /> -->
+
+          <img
+            :src="imageUrl(car)"
+            class="w-full h-48 object-cover mb-2 cursor-pointer"
+            @click="openModal(car)"
+          />
+          <div x-text="car.name" class="font-semibold"></div>
+
+          <div
+            class="font-medium text-sm"
+            x-text="`${car.brand.name} ${car.car_model.name} ${car.year}`"
+          ></div>
+          <div
+            class="text-xs"
+            x-text="`${car.type.name} ${car.series.name} ${(car.cylinder.volume / 1000).toFixed(1)} ${car.transmission.type === 'MANUAL' ? 'M/T' : (car.transmission.type === 'MATIC' ? 'A/T' : car.transmission.type)}`"
+          ></div>
+          <div
+            class="text-xs italic"
+            x-text="`${car.fuel.name} ${car.gear.name}`"
+          ></div>
+          <div
+            @click="isBlur = false"
+            class="text-sm text-white font-bold flex w-full cursor-pointer"
+            :class="isBlur ? 'blur-sm filter transition duration-200' : 'text-sm text-white font-bold flex w-full transition duration-100'"
+          >
+            <div
+              class="p-2 rounded-l-md bg-blue-500"
+              x-text="(() => {
+      const p = car.promo.find(item => item.star === 1);
+      if (!p) return 'Tidak ada promo';
+      const dp = formatMillion(p.down_payment);
+      const cicilan = formatMillion(p.monthly_installment);
+      return `💰${dp} 💳${cicilan} / ${p.installment_period}`;
+    })()"
+            ></div>
+            <div
+              class="p-2 rounded-r-md bg-indigo-500"
+              x-text="(() => {
+      const cashNonMut = formatMillion(car.cash_non_mutation)
+      const creditNonMut = formatMillion(car.credit_non_mutation)
+      return `${cashNonMut}/${creditNonMut}`;
+    })()"
+            ></div>
+          </div>
+        </div>
+      </template>
+      <!-- Modal -->
+      <div
+        x-show="modalOpen"
+        x-transition
+        class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
+      >
+        <div class="bg-white rounded max-w-lg w-full relative">
+          <!-- Close button -->
+          <button
+            class="absolute top-2 right-2 text-gray-700"
+            @click="modalOpen = false"
+          >
+            ✖
+          </button>
+          <img :src="currentImageUrl()" class="max-h-80 object-contain" />
+          <!-- Image slider -->
+          <div class="flex items-center justify-between mb-2">
+            <button class="px-2 py-1 bg-gray-200 rounded" @click="prevImage()">
+              ◀
+            </button>
+
+            <button class="px-2 py-1 bg-gray-200 rounded" @click="nextImage()">
+              ▶
+            </button>
+          </div>
+
+          <!-- Info -->
+          <div class="text-center text-sm text-gray-600">
+            Gambar <span x-text="currentIndex + 1"></span> dari
+            <span x-text="selectedCar?.photos?.length || 0"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+
+  <script>
+    function carApp() {
+      return {
+        token: null,
+        tokenInput: "",
+        cars: [],
+        total: 0,
+        carNotIn: [],
+        loading: false,
+        skip: 0,
+        perPage: 150,
+        result: [],
+        modalOpen: false,
+        selectedCar: null,
+        currentIndex: 0,
+
+        searchLocation: "",
+        searchModel: "",
+        searchColor: "",
+        searchYear: "",
+        searchType: "",
+        searchSeries: "",
+        searchTransmission: "",
+        searchFuel: "",
+        searchGear: "",
+        dpMin: null,
+        dpMax: null,
+        angsMin: null,
+        angsMax: null,
+        creditMin: null,
+        creditMax: null,
+        cashMin: null,
+        cashMax: null,
+
+        init() {
+          this.token = localStorage.getItem("token");
+          const savedData = localStorage.getItem("cars");
+          if (savedData) {
+            this.cars = JSON.parse(savedData);
+            this.result = this.cars;
+          }
+        },
+        scrollToTop() {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        },
+
+        imageUrl(car) {
+          if (car.photos && car.photos.length > 0) {
+            return `https://www.auto88group.com/image/car/${car.photos[0].car_id}/${car.photos[0].image}`;
+          }
+          return "https://i.pinimg.com/736x/0a/26/f2/0a26f24fcab6f80a26600255891c187a.jpg";
+        },
+
+        openModal(car) {
+          if (car.photos && car.photos.length > 0) {
+            this.selectedCar = car;
+            this.currentIndex = 0;
+            this.modalOpen = true;
+          } else {
+            alert("Mobil ini tidak memiliki foto.");
+          }
+        },
+
+        currentImageUrl() {
+          if (
+            this.selectedCar &&
+            this.selectedCar.photos &&
+            this.selectedCar.photos.length > 0
+          ) {
+            const photo = this.selectedCar.photos[this.currentIndex];
+            return `https://www.auto88group.com/image/car/${photo.car_id}/${photo.image}`;
+          }
+          return "https://i.pinimg.com/736x/0a/26/f2/0a26f24fcab6f80a26600255891c187a.jpg";
+        },
+
+        prevImage() {
+          if (this.selectedCar && this.selectedCar.photos.length > 0) {
+            this.currentIndex =
+              (this.currentIndex - 1 + this.selectedCar.photos.length) %
+              this.selectedCar.photos.length;
+          }
+        },
+
+        nextImage() {
+          if (this.selectedCar && this.selectedCar.photos.length > 0) {
+            this.currentIndex =
+              (this.currentIndex + 1) % this.selectedCar.photos.length;
+          }
+        },
+        doSearch() {
+          this.result = this.cars.filter((car) => {
+            // Semua input dikonversi ke lower case
+            const locationKeyword = this.searchLocation.toLowerCase();
+            const modelKeyword = this.searchModel.toLowerCase();
+            const colorKeyword = this.searchColor.toLowerCase();
+            const yearKeyword = this.searchYear.toLowerCase();
+            const typeKeyword = this.searchType.toLowerCase();
+            const seriesKeyword = this.searchSeries.toLowerCase();
+            const transmissionKeyword = this.searchTransmission.toLowerCase();
+            const fuelKeyword = this.searchFuel.toLowerCase();
+            const gearKeyword = this.searchGear.toLowerCase();
+            const dpMinValue =
+              this.dpMin !== null ? this.dpMin * 1_000_000 : null;
+            const dpMaxValue =
+              this.dpMax !== null ? this.dpMax * 1_000_000 : null;
+
+            const angsMinValue =
+              this.angsMin !== null ? this.angsMin * 1_000_000 : null;
+            const angsMaxValue =
+              this.angsMax !== null ? this.angsMax * 1_000_000 : null;
+
+            const creditMinValue =
+              this.creditMin !== null ? this.creditMin * 1_000_000 : null;
+            const creditMaxValue =
+              this.creditMax !== null ? this.creditMax * 1_000_000 : null;
+
+            const cashMinValue =
+              this.cashMin !== null ? this.cashMin * 1_000_000 : null;
+            const cashMaxValue =
+              this.cashMax !== null ? this.cashMax * 1_000_000 : null;
+
+            // Setiap kondisi harus cek apakah input kosong atau tidak
+            const locationMatch =
+              !locationKeyword ||
+              car.last_position.toLowerCase().includes(locationKeyword);
+
+            const colorMatch =
+              !colorKeyword ||
+              car.color.name.toLowerCase().includes(colorKeyword);
+            const modelMatch =
+              !modelKeyword ||
+              car.car_model.name.toLowerCase().includes(modelKeyword);
+            const yearMatch =
+              !yearKeyword || car.year.toString().includes(yearKeyword);
+            const typeMatch =
+              !typeKeyword || car.type.name.toLowerCase().includes(typeKeyword);
+            const seriesMatch =
+              !seriesKeyword ||
+              car.series.name.toLowerCase().includes(seriesKeyword);
+            const fuelMatch =
+              !fuelKeyword || car.fuel.name.toLowerCase().includes(fuelKeyword);
+            const gearMatch =
+              !gearKeyword || car.gear.name.toLowerCase().includes(gearKeyword);
+
+            let transmissionMatch = true;
+            if (transmissionKeyword) {
+              if (transmissionKeyword === "manual") {
+                transmissionMatch =
+                  car.transmission.type.toLowerCase() === "manual";
+              } else if (transmissionKeyword === "matic") {
+                transmissionMatch =
+                  car.transmission.type.toLowerCase() === "matic" ||
+                  car.transmission.type.toLowerCase() === "cvt";
+              } else {
+                // Jika user mengetik sesuatu selain manual/matic, pakai includes biasa
+                transmissionMatch = car.transmission.type
+                  .toLowerCase()
+                  .includes(transmissionKeyword);
+              }
+            }
+
+            let dpMatch = true;
+            const p = car.promo.find((item) => item.star === 1);
+            if (p) {
+              const dp = p.down_payment;
+
+              if (dpMinValue !== null && dpMaxValue !== null) {
+                dpMatch = dp >= dpMinValue && dp <= dpMaxValue;
+              } else if (dpMinValue !== null) {
+                dpMatch = dp >= dpMinValue;
+              } else if (dpMaxValue !== null) {
+                dpMatch = dp <= dpMaxValue;
+              }
+            } else {
+              // Kalau tidak ada promo, data ini tidak lolos filter DP
+              if (dpMinValue !== null || dpMaxValue !== null) {
+                dpMatch = false;
+              }
+            }
+
+            let angsMatch = true;
+            const pangs = car.promo.find((item) => item.star === 1);
+            if (pangs) {
+              const angs = pangs.monthly_installment;
+
+              if (angsMinValue !== null && angsMaxValue !== null) {
+                angsMatch = angs >= angsMinValue && angs <= angsMaxValue;
+              } else if (angsMinValue !== null) {
+                angsMatch = angs >= angsMinValue;
+              } else if (angsMaxValue !== null) {
+                angsMatch = angs <= angsMaxValue;
+              }
+            } else {
+              // Kalau tidak ada promo, data ini tidak lolos filter angs
+              if (angsMinValue !== null || angsMaxValue !== null) {
+                angsMatch = false;
+              }
+            }
+
+            let creditMatch = true;
+            const credit = car.credit_non_mutation;
+            if (credit) {
+              if (creditMinValue !== null && creditMaxValue !== null) {
+                creditMatch =
+                  credit >= creditMinValue && credit <= creditMaxValue;
+              } else if (creditMinValue !== null) {
+                creditMatch = credit >= creditMinValue;
+              } else if (creditMaxValue !== null) {
+                creditMatch = credit <= creditMaxValue;
+              }
+            } else {
+              // Kalau tidak ada promo, data ini tidak lolos filter credit
+              if (creditMinValue !== null || creditMaxValue !== null) {
+                creditMatch = false;
+              }
+            }
+
+            let cashMatch = true;
+            const cash = car.cash_non_mutation;
+            if (cash) {
+              if (cashMinValue !== null && cashMaxValue !== null) {
+                cashMatch = cash >= cashMinValue && cash <= cashMaxValue;
+              } else if (cashMinValue !== null) {
+                cashMatch = cash >= cashMinValue;
+              } else if (cashMaxValue !== null) {
+                cashMatch = cash <= cashMaxValue;
+              }
+            } else {
+              // Kalau tidak ada promo, data ini tidak lolos filter cash
+              if (cashMinValue !== null || cashMaxValue !== null) {
+                cashMatch = false;
+              }
+            }
+
+            // Semua kondisi harus true
+            return (
+              locationMatch &&
+              modelMatch &&
+              colorMatch &&
+              yearMatch &&
+              typeMatch &&
+              seriesMatch &&
+              transmissionMatch &&
+              fuelMatch &&
+              gearMatch &&
+              dpMatch &&
+              angsMatch &&
+              creditMatch &&
+              cashMatch
+            );
+          });
+        },
+
+        clearSearch() {
+          this.result = this.cars;
+          this.searchLocation = "";
+          this.searchModel = "";
+          this.searchColor = "";
+          this.searchYear = "";
+          this.searchType = "";
+          this.searchSeries = "";
+          this.searchTransmission = "";
+          this.searchFuel = "";
+          this.searchGear = "";
+          this.dpMin = null;
+          this.dpMax = null;
+          this.angsMin = null;
+          this.angsMax = null;
+          this.creditMin = null;
+          this.creditMax = null;
+          this.cashMin = null;
+          this.cashMax = null;
+        },
+
+        saveToken() {
+          this.token = this.tokenInput;
+          localStorage.setItem("token", this.tokenInput);
+          this.tokenInput = "";
+        },
+
+        clearToken() {
+          localStorage.removeItem("token");
+          this.token = null;
+          this.cars = [];
+          this.result = [];
+        },
+
+        fetchCars(carNotIn = []) {
+          this.loading = true;
+
+          // Buat URL dasar + tambahkan parameter car_not_in jika ada
+          let baseUrl =
+            "https://www.auto88group.com/api/index-car?search=&price_start=0&price_end=0&plat=0&rows=ALL&type_id=0&car_model_id=0&series_id=0&cylinder_id=0&kind_id=0&brand_id=0&color_id=0&fuel_id=0&transmission_id=0&gear_id=0&last_position=&sort_car=CHEAP&bpkb=0&gesekan=0&database_sold=0&unknown=0&pelabuhan=0&pass_inspection=0&not_ready=0&not_photo=0&approved=0&hold=0&ready=0&skip=" +
+            this.skip +
+            "&per_page=" +
+            this.perPage;
+
+          if (this.carNotIn.length > 0) {
+            baseUrl += `&car_not_in=${encodeURIComponent(
+              JSON.stringify(this.carNotIn)
+            )}`;
+          }
+
+          fetch(baseUrl, {
+            headers: {
+              Authorization: "Bearer " + this.token,
+            },
+          })
+            .then((res) => res.json())
+            .then((data) => {
+              const newCars = data.data || [];
+              this.total = data.total;
+              console.log(newCars);
+              // Kalau ini fetch pertama
+              if (!this.cars) {
+                this.cars = newCars;
+                this.result = this.cars;
+              } else {
+                newCars.forEach((item) => {
+                  if (!this.carNotIn.includes(item.id)) {
+                    this.cars.push(item);
+                  }
+                });
+
+                newCars.forEach((item) => {
+                  this.carNotIn.push(item.id);
+                });
+              }
+
+              // Simpan ke localStorage
+              // localStorage.setItem("cars", JSON.stringify(this.cars));
+              this.skip = this.cars.length;
+
+              // Cek apakah sudah cukup
+              if (this.cars.length < 400 && newCars.length > 0) {
+                const currentIds = this.cars.map((car) => car.id);
+                this.fetchCars(); // rekursif panggil ulang
+              } else {
+                this.cars = this.cars.filter(
+                  (car) => car.sold_date == null || car.sold_date === ""
+                );
+                this.result = this.cars;
+                localStorage.setItem("cars", JSON.stringify(this.cars));
+              }
+            })
+            .catch((err) => alert("Gagal mengambil data: " + err))
+            .finally(() => {
+              this.loading = false;
+            });
+        },
+
+        clearData() {
+          localStorage.removeItem("cars");
+          this.cars = [];
+          this.result = [];
+        },
+
+        imageUrl(car) {
+          if (car.photos && car.photos.length > 0) {
+            return `https://www.auto88group.com/image/car/${car.photos[0].car_id}/${car.photos[0].image}`;
+          }
+          return "https://i.pinimg.com/736x/0a/26/f2/0a26f24fcab6f80a26600255891c187a.jpg";
+        },
+      };
+    }
+  </script>
+</html>
