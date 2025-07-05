@@ -347,7 +347,7 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
       <template x-for="car in result" :key="car.id">
         <div
-          class="bg-white rounded shadow p-4 w-full"
+           :class="car.sold_date ? 'bg-red-200  rounded shadow p-4 w-full' : 'bg-white rounded shadow p-4 w-full'"
           x-data="{  
            isBlur: false,
           formatMillion(value) {
@@ -356,10 +356,13 @@
       return Number.isInteger(truncated) ? truncated.toString() : truncated.toFixed(1);
     }}"
         >
-          <div
-            class="text-sm font-semibold mb-2"
-            x-text="car.police_number"
-          ></div>
+          <div class="flex gap-2 items-center mb-2">
+            <div
+              class="text-sm font-semibold "
+              x-text="car.police_number"
+            ></div>                        
+              <div x-show="car.sold_date" class="bg-red-100 text-red-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-sm dark:bg-red-900 dark:text-red-300" x-text="'Sudah Terjual'"></div>          
+          </div>  
           <!-- <img :src="imageUrl(car)" class="w-full h-48 object-cover mb-2" /> -->
 
           <img
@@ -781,9 +784,9 @@
                 const currentIds = this.cars.map((car) => car.id);
                 this.fetchCars(); // rekursif panggil ulang
               } else {
-                this.cars = this.cars.filter(
-                  (car) => car.sold_date == null || car.sold_date === ""
-                );
+                // this.cars = this.cars.filter(
+                //   (car) => car.sold_date == null || car.sold_date === ""
+                // );
                 this.result = this.cars;
                 localStorage.setItem("cars", JSON.stringify(this.cars));
               }
