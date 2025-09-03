@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="manifest" href="manifest.json" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Manrope:wght@200..800&family=Michroma&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
+          rel="stylesheet"
+        />
+        <script src="//unpkg.com/alpinejs" defer></script>
+        <title>Navbar</title>
+        <style>
+          .michroma-regular {
+            font-family: "Michroma", sans-serif;
+            font-weight: 400;
+            font-style: normal;
+          }
+        </style>
+      </head>
+      <body
+        class="bg-gray-100"
+        x-data="{ activeAC: false, activeEngine: false }"
+      >
+        <nav class="flex items-center justify-between px-1 py-2 bg-white">
+          <!-- Icon Kiri -->
+          <a href="index.html" class="p-2">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+              class="w-6 h-6 text-gray-700"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M15.75 19.5 8.25 12l7.5-7.5"
+              />
+            </svg>
+          </a>
+
+          <!-- Judul Tengah -->
+          <div class="flex gap-2">
+            <h1 class="text-lg font-semibold text-gray-800">
+              Pengaturan suhu kabin
+            </h1>
+          </div>
+
+          <div></div>
+        </nav>
+        <div class="relative w-[250px] mx-auto">
+          <img
+            class="w-full block object-contain"
+            src="/assets/images/kabin.png"
+            alt="Chromecast Active SVG Vector Icon"
+            width="250"
+            loading="eager"
+            decoding="sync"
+            fetchpriority="high"
+            importance="high"
+          />
+          <img
+            x-show="activeAC"
+            src="/assets/images/kabin cool.png"
+            alt="Overlay Pendingin"
+            class="mix-blend-screen absolute inset-0 w-full h-full object-contain"
+            x-transition:enter="transition ease-out duration-500"
+            x-transition:enter-start="-translate-y-full opacity-0"
+            x-transition:enter-end="translate-y-0 opacity-100"
+            x-transition:leave="transition ease-in duration-500"
+            x-transition:leave-start="translate-y-0 opacity-100"
+            x-transition:leave-end="translate-y-full opacity-0"
+          />
+
+          <img
+            x-show="activeEngine"
+            src="/assets/images/kabin hidup.png"
+            alt="Overlay Pendingin"
+            class="mix-blend-screen absolute inset-0 w-full h-full object-contain"
+            x-transition:enter="transition-opacity duration-500 ease-out"
+            x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100"
+            x-transition:leave="transition-opacity duration-500 ease-in"
+            x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0"
+          />
+        </div>
+        <div class="px-2 w-full mt-4">
+          <div
+            class="bg-white drop-shadow rounded flex items-center justify-between"
+          >
+            <div
+              @click="activeEngine = !activeEngine"
+              class="px-7 py-4 rounded-lg cursor-pointer transition w-full"
+              :class="activeEngine ? 'bg-gradient-to-br from-blue-100 to-white' : ''"
+            >
+              <img
+                class="mx-auto"
+                src="/assets/images/setir.png"
+                alt="Chromecast Active SVG Vector Icon"
+                width="25"
+                height="25"
+                loading="eager"
+                decoding="sync"
+                fetchpriority="high"
+                importance="high"
+                style="max-width: 100%; object-fit: contain; display: block"
+              />
+              <p class="text-sm leading-none text-gray-400 text-center mt-3">
+                <span
+                  class="inline-block w-[120px]"
+                  x-text="activeEngine ? 'Matikan Mesin' : 'Hidupkan Mesin'"
+                ></span>
+              </p>
+            </div>
+            <div class="h-6 border-l border-gray-400"></div>
+
+            <div
+              @click="activeAC = !activeAC"
+              class="px-7 py-4 rounded-lg cursor-pointer transition w-full"
+              :class="activeAC ? 'bg-gradient-to-bl from-blue-100 to-white' : ''"
+            >
+              <img
+                class="mx-auto"
+                src="/assets/images/salju.png"
+                alt="Chromecast Active SVG Vector Icon"
+                width="25"
+                height="25"
+                loading="eager"
+                decoding="sync"
+                fetchpriority="high"
+                importance="high"
+                style="max-width: 100%; object-fit: contain; display: block"
+              />
+              <p class="text-sm leading-none text-gray-400 text-center mt-3">
+                <span
+                  class="inline-block w-[120px]"
+                  x-text="activeAC ? 'Matikan AC' : 'Dinginkan kabin'"
+                ></span>
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="px-2 w-full mt-4">
+          <div
+            class="bg-white drop-shadow p-4 rounded flex items-center justify-center gap-3"
+          >
+            <img
+              src="/assets/images/daun.png"
+              alt="Chromecast Active SVG Vector Icon"
+              width="50"
+              loading="eager"
+              decoding="sync"
+              fetchpriority="high"
+              importance="high"
+            />
+            <div>
+              <p class="leading-none text-normal flex gap-1 text-center mb-1">
+                Jadwal Nyala AC
+              </p>
+              <p
+                class="text-sm leading-none text-gray-400 flex gap-1 text-center"
+              >
+                Tidak ada jadwal
+              </p>
+            </div>
+            <p
+              class="text-sm leading-none text-gray-400 flex gap-1 text-center"
+            >
+              Tidak ada jadwal
+            </p>
+
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              class="w-6 h-6 text-gray-700"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M16.28 11.47a.75.75 0 0 1 0 1.06l-7.5 7.5a.75.75 0 0 1-1.06-1.06L14.69 12 7.72 5.03a.75.75 0 0 1 1.06-1.06l7.5 7.5Z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </div>
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js"></script>
+        <script>
+          if ("serviceWorker" in navigator) {
+            navigator.serviceWorker
+              .register("/sw.js")
+              .then(() => console.log("Service Worker Registered"));
+          }
+        </script>
+      </body>
+    </html>
+  </body>
+</html>
