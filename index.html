@@ -8,30 +8,110 @@
     <link rel="manifest" href="manifest.json" />
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   </head>
-  <body class="bg-gray-100 p-6" x-data="carApp()">
+  <body class="bg-gray-100 p-6 relative" x-data="carApp()">
+    <div
+      x-show="loginConfig.showSuccess"
+      x-transition
+      id="successAlert"
+      class="absolute flex items-center gap-2 p-4 mb-4 right-0 text-sm text-blue-800 rounded-lg bg-blue-100"
+      role="alert"
+      style="display: none"
+    >
+      <span class="font-medium">Login Berhasil</span>
+      <button @click="loginConfig.showSuccess = false">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="1.5"
+          stroke="currentColor"
+          class="size-6"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M6 18 18 6M6 6l12 12"
+          />
+        </svg>
+      </button>
+    </div>
+
+    <div
+      x-show="loginConfig.showFailed"
+      x-transition
+      id="failedAlert"
+      class="absolute flex items-center gap-2 p-4 mb-4 right-0 text-sm text-red-800 rounded-lg bg-red-100"
+      role="alert"
+      style="display: none"
+    >
+      <span class="font-medium" x-text="loginConfig.errorMessage"></span>
+      <button @click="loginConfig.showFailed = false">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="1.5"
+          stroke="currentColor"
+          class="size-6"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M6 18 18 6M6 6l12 12"
+          />
+        </svg>
+      </button>
+    </div>
+
     <!-- Input Token -->
     <template x-if="!token">
       <div class="mb-4 p-4 bg-white rounded shadow">
-        <div class="mb-4">
+        <!-- <div class="mb-4">
           <a
             href="my-wuling.html"
             class="py-2.5 px-5 me-2 mb-2 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
           >
             My Wuling+
           </a>
-        </div>
+        </div> -->
 
-        <label class="block mb-2 font-semibold">Masukkan Bearer Token</label>
+        <label class="block mb-2 font-semibold">Email</label>
+        <input x-model="email" type="email" class="border p-2 w-full mb-2" />
+
+        <label class="block mb-2 font-semibold">Password</label>
         <input
-          x-model="tokenInput"
-          type="text"
+          x-model="password"
+          type="password"
           class="border p-2 w-full mb-2"
         />
         <button
-          @click="saveToken()"
-          class="bg-blue-500 text-white px-4 py-2 rounded"
+          @click="login()"
+          class="bg-blue-500 text-white px-4 py-2 rounded flex items-center gap-2"
         >
-          Simpan Token
+          <div
+            role="status"
+            x-show="loginConfig.isLoading"
+            style="display: none"
+          >
+            <svg
+              aria-hidden="true"
+              class="w-5 h-5 text-neutral-tertiary animate-spin fill-brand"
+              viewBox="0 0 100 101"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+                fill="currentColor"
+              />
+              <path
+                d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+                fill="currentFill"
+              />
+            </svg>
+            <span class="sr-only">Loading...</span>
+          </div>
+          <p>Login</p>
         </button>
       </div>
     </template>
@@ -186,232 +266,44 @@
               <option value="auto 88 parindu (sanggau)">Auto 88 Parindu</option>
             </select>
           </div>
+
           <div>
             <label
-              for="police_number"
+              for="general_search"
               class="block text-sm font-medium text-gray-900"
-              >Plat</label
+              >Cari</label
             >
             <input
               type="text"
-              id="police_number"
+              id="general_search"
               class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-              placeholder="KB 0000 PA"
-              x-model="searchPoliceNumber"
-              @input="filterSuggestionsPoliceNumber(); showPoliceNumberSuggestions = true"
-              @focus="filterSuggestionsPoliceNumber(); showPoliceNumberSuggestions = true"
-              @click.away="showPoliceNumberSuggestions = false"
+              placeholder="Cari semua"
+              x-model="searchAll"
             />
-            <ul
-              x-show="showPoliceNumberSuggestions && filteredPoliceNumberSuggestions.length > 0"
-              class="absolute z-10 bg-white border border-gray-300 mt-1 w-full rounded-md shadow-lg max-h-60 overflow-auto"
-            >
-              <template
-                x-for="(item, index) in filteredPoliceNumberSuggestions"
-                :key="index"
-              >
-                <li
-                  @click="selectPoliceNumberSuggestion(item)"
-                  class="px-4 py-2 cursor-pointer hover:bg-blue-100"
-                  x-text="item"
-                ></li>
-              </template>
-            </ul>
           </div>
-          <div>
-            <label
-              for="first_name"
-              class="block text-sm font-medium text-gray-900"
-              >Model Mobil</label
-            >
-            <input
-              type="text"
-              id="first_name"
-              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-              placeholder="Sigra"
-              x-model="searchModel"
-              @input="filterSuggestionsModel(); showModelSuggestions = true"
-              @focus="filterSuggestionsModel(); showModelSuggestions = true"
-              @click.away="showModelSuggestions = false"
-            />
-            <ul
-              x-show="showModelSuggestions && filteredModelSuggestions.length > 0"
-              class="absolute z-10 bg-white border border-gray-300 mt-1 w-full rounded-md shadow-lg max-h-60 overflow-auto"
-            >
-              <template
-                x-for="(item, index) in filteredModelSuggestions"
-                :key="index"
-              >
-                <li
-                  @click="selectModelSuggestion(item)"
-                  class="px-4 py-2 cursor-pointer hover:bg-blue-100"
-                  x-text="item"
-                ></li>
-              </template>
-            </ul>
-          </div>
+
           <div>
             <label for="year" class="block text-sm font-medium text-gray-900"
-              >Tahun</label
+              >Rentang Tahun</label
             >
-            <input
-              type="number"
-              id="year"
-              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-              placeholder="2022"
-              x-model="searchYear"
-              @input="filterSuggestionsYear(); showYearSuggestions = true"
-              @focus="filterSuggestionsYear(); showYearSuggestions = true"
-              @click.away="showYearSuggestions = false"
-            />
-            <ul
-              x-show="showYearSuggestions && filteredYearSuggestions.length > 0"
-              class="absolute z-10 bg-white border border-gray-300 mt-1 w-full rounded-md shadow-lg max-h-60 overflow-auto"
-            >
-              <template
-                x-for="(item, index) in filteredYearSuggestions"
-                :key="index"
-              >
-                <li
-                  @click="selectYearSuggestion(item)"
-                  class="px-4 py-2 cursor-pointer hover:bg-blue-100"
-                  x-text="item"
-                ></li>
-              </template>
-            </ul>
+            <div class="flex gap-2">
+              <input
+                type="number"
+                id="beginYear"
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                :placeholder=" new Date().getFullYear() - 5"
+                x-model="years.begin"
+              />
+              <input
+                type="number"
+                id="endYear"
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                :placeholder=" new Date().getFullYear()"
+                x-model="years.end"
+              />
+            </div>
           </div>
-          <div>
-            <label for="type" class="block text-sm font-medium text-gray-900"
-              >Tipe</label
-            >
-            <input
-              type="text"
-              id="type"
-              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-              placeholder="M"
-              x-model="searchType"
-              @input="filterSuggestionsType(); showTypeSuggestions = true"
-              @focus="filterSuggestionsType(); showTypeSuggestions = true"
-              @click.away="showTypeSuggestions = false"
-            />
-            <ul
-              x-show="showTypeSuggestions && filteredTypeSuggestions.length > 0"
-              class="absolute z-10 bg-white border border-gray-300 mt-1 w-full rounded-md shadow-lg max-h-60 overflow-auto"
-            >
-              <template
-                x-for="(item, index) in filteredTypeSuggestions"
-                :key="index"
-              >
-                <li
-                  @click="selectTypeSuggestion(item)"
-                  class="px-4 py-2 cursor-pointer hover:bg-blue-100"
-                  x-text="item"
-                ></li>
-              </template>
-            </ul>
-          </div>
-          <div>
-            <label for="series" class="block text-sm font-medium text-gray-900"
-              >Series</label
-            >
-            <input
-              type="text"
-              id="series"
-              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-              placeholder="double cabin"
-              x-model="searchSeries"
-              @input="filterSuggestionsSeries(); showSeriesSuggestions = true"
-              @focus="filterSuggestionsSeries(); showSeriesSuggestions = true"
-              @click.away="showSeriesSuggestions = false"
-            />
-            <ul
-              x-show="showSeriesSuggestions && filteredSeriesSuggestions.length > 0"
-              class="absolute z-10 bg-white border border-gray-300 mt-1 w-full rounded-md shadow-lg max-h-60 overflow-auto"
-            >
-              <template
-                x-for="(item, index) in filteredSeriesSuggestions"
-                :key="index"
-              >
-                <li
-                  @click="selectSeriesSuggestion(item)"
-                  class="px-4 py-2 cursor-pointer hover:bg-blue-100"
-                  x-text="item"
-                ></li>
-              </template>
-            </ul>
-          </div>
-          <div>
-            <label for="type" class="block text-sm font-medium text-gray-900"
-              >Transmisi</label
-            >
-            <select
-              x-model="searchTransmission"
-              id="countries"
-              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-            >
-              <option selected>Pilih transmisi</option>
-              <option value="manual">Manual</option>
-              <option value="matic">Matic/CVT</option>
-            </select>
-          </div>
-          <div>
-            <label for="fuel" class="block text-sm font-medium text-gray-900"
-              >Bahan Bakar</label
-            >
-            <select
-              x-model="searchFuel"
-              id="fuel"
-              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-            >
-              <option selected>Pilih Bahan Bakar</option>
-              <option value="premium">Premium</option>
-              <option value="diesel">Diesel</option>
-            </select>
-          </div>
-          <div>
-            <label for="color" class="block text-sm font-medium text-gray-900"
-              >Warna</label
-            >
-            <input
-              type="text"
-              id="color"
-              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-              placeholder="Grey"
-              x-model="searchColor"
-              @input="filterSuggestionsColor(); showColorSuggestions = true"
-              @focus="filterSuggestionsColor(); showColorSuggestions = true"
-              @click.away="showColorSuggestions = false"
-            />
-            <ul
-              x-show="showColorSuggestions && filteredColorSuggestions.length > 0"
-              class="absolute z-10 bg-white border border-gray-300 mt-1 w-full rounded-md shadow-lg max-h-60 overflow-auto"
-            >
-              <template
-                x-for="(item, index) in filteredColorSuggestions"
-                :key="index"
-              >
-                <li
-                  @click="selectColorSuggestion(item)"
-                  class="px-4 py-2 cursor-pointer hover:bg-blue-100"
-                  x-text="item"
-                ></li>
-              </template>
-            </ul>
-          </div>
-          <div>
-            <label for="gear" class="block text-sm font-medium text-gray-900"
-              >Penggerak</label
-            >
-            <select
-              x-model="searchGear"
-              id="gear"
-              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-            >
-              <option selected>Pilih Penggerak</option>
-              <option value="4x2">4x2</option>
-              <option value="4x4">4x4</option>
-            </select>
-          </div>
+
           <div>
             <label for="dp" class="block text-sm font-medium text-gray-900"
               >Rentang DP</label
@@ -632,6 +524,15 @@
   <script>
     function carApp() {
       return {
+        email: "",
+        password: "",
+        loginConfig: {
+          isLoading: false,
+          errorMessage: "",
+          showSuccess: false,
+          showFailed: false,
+        },
+
         token: null,
         tokenInput: "",
         cars: [],
@@ -645,16 +546,12 @@
         selectedCar: null,
         currentIndex: 0,
 
+        searchAll: "",
+        years: {
+          begin: "",
+          end: "",
+        },
         searchLocation: "",
-        searchPoliceNumber: "",
-        searchModel: "",
-        searchColor: "",
-        searchYear: "",
-        searchType: "",
-        searchSeries: "",
-        searchTransmission: "",
-        searchFuel: "",
-        searchGear: "",
         dpMin: null,
         dpMax: null,
         angsMin: null,
@@ -664,103 +561,14 @@
         cashMin: null,
         cashMax: null,
 
-        showModelSuggestions: false,
-        modelSuggestions: [
-          "triton",
-          "hilux",
-          "x-trail",
-          "rocky",
-          "sienta",
-          "livina",
-          "sigra",
-          "xenia",
-          "raize",
-          "granmax",
-          "baleno",
-          "datsun",
-          "go+",
-          "camry",
-          "sokon",
-          "avanza",
-          "confero",
-          "sirion",
-          "mirage",
-          "ayla",
-          "wagon",
-          "march",
-          "agya",
-          "apv",
-          "new carry",
-          "ignis",
-          "calya",
-          "gelora",
-          "ertiga",
-          "spresso",
-          "mobilio",
-          "granmax minibus",
-          "luxio",
-          "brio",
-          "cortez",
-          "trax",
-          "glory 560",
-          "terios",
-          "innova",
-          "yaris",
-          "rush",
-          "crv",
-          "brv",
-          "jazz",
-          "almaz",
-          "l-300",
-          "fortuner",
-          "xpander",
-          "xl7",
-          "sx4",
-          "veloz",
-          "accord",
-          "hrv",
-          "elf",
-          "voxy",
-          "canter",
-          "omoda",
-          "cla-200",
-          "pajero",
-          "hiace",
-        ],
-        filteredModelSuggestions: [],
-
-        showYearSuggestions: false,
-        yearSuggestions: [],
-        filteredYearSuggestions: [],
-
-        showTypeSuggestions: false,
-        TypeSuggestions: [],
-        filteredTypeSuggestions: [],
-
-        showSeriesSuggestions: false,
-        seriesSuggestions: [],
-        filteredSeriesSuggestions: [],
-
-        showColorSuggestions: false,
-        colorSuggestions: [],
-        filteredColorSuggestions: [],
-
-        showPoliceNumberSuggestions: false,
-        policeNumberSuggestions: [],
-        filteredPoliceNumberSuggestions: [],
-
         init() {
           this.token = localStorage.getItem("token");
           const savedData = localStorage.getItem("cars");
           if (savedData) {
             this.cars = JSON.parse(savedData);
             this.result = this.cars;
-            this.initYearSuggestions();
-            this.initTypeSuggestions();
-            this.initSeriesSuggestions();
-            this.initColorSuggestions();
-            this.initPoliceNumberSuggestions();
           }
+          console.log("masuk");
         },
         scrollToTop() {
           window.scrollTo({ top: 0, behavior: "smooth" });
@@ -810,130 +618,52 @@
           }
         },
 
-        filterSuggestionsModel() {
-          const search = this.searchModel.toLowerCase();
-          this.filteredModelSuggestions = this.modelSuggestions.filter((s) =>
-            s.toLowerCase().includes(search)
-          );
-        },
-        selectModelSuggestion(value) {
-          this.searchModel = value;
-          this.showModelSuggestions = false;
-        },
-
-        initYearSuggestions() {
-          // Ambil semua tahun dari this.cars
-          const years = this.cars.map((c) => c.year);
-
-          // Hilangkan duplikat & sort DESC
-          this.yearSuggestions = [...new Set(years)].sort((a, b) => b - a);
-        },
-        filterSuggestionsYear() {
-          const search = this.searchYear;
-          this.filteredYearSuggestions = this.yearSuggestions.filter((y) =>
-            y.toString().includes(search)
-          );
-        },
-        selectYearSuggestion(value) {
-          this.searchYear = value;
-          this.showYearSuggestions = false;
-        },
-
-        initTypeSuggestions() {
-          // Ambil semua tahun dari this.cars
-          const type = this.cars.map((c) => c.type.name);
-
-          // Hilangkan duplikat & sort DESC
-          this.TypeSuggestions = [...new Set(type)].sort((a, b) =>
-            b.localeCompare(a)
-          );
-        },
-        filterSuggestionsType() {
-          const search = this.searchType.toLowerCase();
-          this.filteredTypeSuggestions = this.TypeSuggestions.filter((y) =>
-            y.toLowerCase().includes(search)
-          );
-        },
-
-        selectTypeSuggestion(value) {
-          this.searchType = value;
-          this.showTypeSuggestions = false;
-        },
-
-        initSeriesSuggestions() {
-          // Ambil semua tahun dari this.cars
-          const type = this.cars.map((c) => c.series.name);
-
-          // Hilangkan duplikat & sort DESC
-          this.seriesSuggestions = [...new Set(type)].sort((a, b) =>
-            b.localeCompare(a)
-          );
-        },
-        filterSuggestionsSeries() {
-          const search = this.searchSeries.toLowerCase();
-          this.filteredSeriesSuggestions = this.seriesSuggestions.filter((y) =>
-            y.toLowerCase().includes(search)
-          );
-        },
-        selectSeriesSuggestion(value) {
-          this.searchSeries = value;
-          this.showSeriesSuggestions = false;
-        },
-
-        initColorSuggestions() {
-          // Ambil semua tahun dari this.cars
-          const type = this.cars.map((c) => c.color.name);
-
-          // Hilangkan duplikat & sort DESC
-          this.colorSuggestions = [...new Set(type)].sort((a, b) =>
-            b.localeCompare(a)
-          );
-        },
-        filterSuggestionsColor() {
-          const search = this.searchColor.toLowerCase();
-          this.filteredColorSuggestions = this.colorSuggestions.filter((y) =>
-            y.toLowerCase().includes(search)
-          );
-        },
-        selectColorSuggestion(value) {
-          this.searchColor = value;
-          this.showColorSuggestions = false;
-        },
-
-        initPoliceNumberSuggestions() {
-          // Ambil semua tahun dari this.cars
-          const police_number = this.cars.map((c) => c.police_number);
-
-          // Hilangkan duplikat & sort DESC
-          this.policeNumberSuggestions = [...new Set(police_number)].sort(
-            (a, b) => b.localeCompare(a)
-          );
-        },
-        filterSuggestionsPoliceNumber() {
-          const search = this.searchPoliceNumber.toLowerCase();
-          this.filteredPoliceNumberSuggestions =
-            this.policeNumberSuggestions.filter((y) =>
-              y.toLowerCase().includes(search)
-            );
-        },
-        selectPoliceNumberSuggestion(value) {
-          this.searchPoliceNumber = value;
-          this.showPoliceNumberSuggestions = false;
-        },
-
         doSearch() {
+          console.log("masuk");
           this.result = this.cars.filter((car) => {
-            // Semua input dikonversi ke lower case
+            /* =========================
+             * GLOBAL SEARCH (SLUG)
+             * ========================= */
+            const keywords = this.searchAll
+              ? this.searchAll.toLowerCase().trim().split(/\s+/)
+              : [];
+
+            const slugMatch =
+              keywords.length === 0 ||
+              keywords.every((keyword) =>
+                car.slug.toLowerCase().includes(keyword)
+              );
+
+            /* =========================
+             * LOCATION (TETAP)
+             * ========================= */
             const locationKeyword = this.searchLocation.toLowerCase();
-            const policeNumberKeyword = this.searchPoliceNumber.toLowerCase();
-            const modelKeyword = this.searchModel.toLowerCase();
-            const colorKeyword = this.searchColor.toLowerCase();
-            const yearKeyword = this.searchYear;
-            const typeKeyword = this.searchType.toLowerCase();
-            const seriesKeyword = this.searchSeries.toLowerCase();
-            const transmissionKeyword = this.searchTransmission.toLowerCase();
-            const fuelKeyword = this.searchFuel.toLowerCase();
-            const gearKeyword = this.searchGear.toLowerCase();
+            const locationMatch =
+              !locationKeyword ||
+              car.last_position.toLowerCase().includes(locationKeyword);
+
+            /* =========================
+             * YEAR RANGE
+             * ========================= */
+            const beginYear = this.years.begin
+              ? parseInt(this.years.begin)
+              : null;
+            const endYear = this.years.end ? parseInt(this.years.end) : null;
+
+            let yearMatch = true;
+            if (beginYear !== null && endYear !== null) {
+              yearMatch =
+                parseInt(car.year) >= beginYear &&
+                parseInt(car.year) <= endYear;
+            } else if (beginYear !== null) {
+              yearMatch = parseInt(car.year) >= beginYear;
+            } else if (endYear !== null) {
+              yearMatch = parseInt(car.year) <= endYear;
+            }
+
+            /* =========================
+             * RANGE FILTER
+             * ========================= */
             const dpMinValue =
               this.dpMin !== null ? this.dpMin * 1_000_000 : null;
             const dpMaxValue =
@@ -954,134 +684,76 @@
             const cashMaxValue =
               this.cashMax !== null ? this.cashMax * 1_000_000 : null;
 
-            // Setiap kondisi harus cek apakah input kosong atau tidak
-            const locationMatch =
-              !locationKeyword ||
-              car.last_position.toLowerCase().includes(locationKeyword);
-
-            const colorMatch =
-              !colorKeyword ||
-              car.color.name.toLowerCase().includes(colorKeyword);
-            const policeNumberMatch =
-              !policeNumberKeyword ||
-              car.police_number.toLowerCase().includes(policeNumberKeyword);
-            const modelMatch =
-              !modelKeyword ||
-              car.car_model.name.toLowerCase().includes(modelKeyword);
-            const yearMatch =
-              !yearKeyword || car.year.toString().includes(yearKeyword);
-            const typeMatch =
-              !typeKeyword || car.type.name.toLowerCase().includes(typeKeyword);
-            const seriesMatch =
-              !seriesKeyword ||
-              car.series.name.toLowerCase().includes(seriesKeyword);
-            const fuelMatch =
-              !fuelKeyword || car.fuel.name.toLowerCase().includes(fuelKeyword);
-            const gearMatch =
-              !gearKeyword || car.gear.name.toLowerCase().includes(gearKeyword);
-
-            let transmissionMatch = true;
-            if (transmissionKeyword) {
-              if (transmissionKeyword === "manual") {
-                transmissionMatch =
-                  car.transmission.type.toLowerCase() === "manual";
-              } else if (transmissionKeyword === "matic") {
-                transmissionMatch =
-                  car.transmission.type.toLowerCase() === "matic" ||
-                  car.transmission.type.toLowerCase() === "cvt";
-              } else {
-                // Jika user mengetik sesuatu selain manual/matic, pakai includes biasa
-                transmissionMatch = car.transmission.type
-                  .toLowerCase()
-                  .includes(transmissionKeyword);
-              }
-            }
-
+            /* =========================
+             * DP PROMO
+             * ========================= */
             let dpMatch = true;
-            const p = car.promo.find((item) => item.star === 1);
-            if (p) {
-              const dp = p.down_payment;
+            const promo = car.promo.find((item) => item.star === 1);
 
-              if (dpMinValue !== null && dpMaxValue !== null) {
+            if (promo) {
+              const dp = promo.down_payment;
+              if (dpMinValue !== null && dpMaxValue !== null)
                 dpMatch = dp >= dpMinValue && dp <= dpMaxValue;
-              } else if (dpMinValue !== null) {
-                dpMatch = dp >= dpMinValue;
-              } else if (dpMaxValue !== null) {
-                dpMatch = dp <= dpMaxValue;
-              }
-            } else {
-              // Kalau tidak ada promo, data ini tidak lolos filter DP
-              if (dpMinValue !== null || dpMaxValue !== null) {
-                dpMatch = false;
-              }
+              else if (dpMinValue !== null) dpMatch = dp >= dpMinValue;
+              else if (dpMaxValue !== null) dpMatch = dp <= dpMaxValue;
+            } else if (dpMinValue !== null || dpMaxValue !== null) {
+              dpMatch = false;
             }
 
+            /* =========================
+             * ANGSURAN
+             * ========================= */
             let angsMatch = true;
-            const pangs = car.promo.find((item) => item.star === 1);
-            if (pangs) {
-              const angs = pangs.monthly_installment;
-
-              if (angsMinValue !== null && angsMaxValue !== null) {
+            if (promo) {
+              const angs = promo.monthly_installment;
+              if (angsMinValue !== null && angsMaxValue !== null)
                 angsMatch = angs >= angsMinValue && angs <= angsMaxValue;
-              } else if (angsMinValue !== null) {
-                angsMatch = angs >= angsMinValue;
-              } else if (angsMaxValue !== null) {
-                angsMatch = angs <= angsMaxValue;
-              }
-            } else {
-              // Kalau tidak ada promo, data ini tidak lolos filter angs
-              if (angsMinValue !== null || angsMaxValue !== null) {
-                angsMatch = false;
-              }
+              else if (angsMinValue !== null) angsMatch = angs >= angsMinValue;
+              else if (angsMaxValue !== null) angsMatch = angs <= angsMaxValue;
+            } else if (angsMinValue !== null || angsMaxValue !== null) {
+              angsMatch = false;
             }
 
+            /* =========================
+             * CREDIT
+             * ========================= */
             let creditMatch = true;
             const credit = car.credit_non_mutation;
+
             if (credit) {
-              if (creditMinValue !== null && creditMaxValue !== null) {
+              if (creditMinValue !== null && creditMaxValue !== null)
                 creditMatch =
                   credit >= creditMinValue && credit <= creditMaxValue;
-              } else if (creditMinValue !== null) {
+              else if (creditMinValue !== null)
                 creditMatch = credit >= creditMinValue;
-              } else if (creditMaxValue !== null) {
+              else if (creditMaxValue !== null)
                 creditMatch = credit <= creditMaxValue;
-              }
-            } else {
-              // Kalau tidak ada promo, data ini tidak lolos filter credit
-              if (creditMinValue !== null || creditMaxValue !== null) {
-                creditMatch = false;
-              }
+            } else if (creditMinValue !== null || creditMaxValue !== null) {
+              creditMatch = false;
             }
 
+            /* =========================
+             * CASH
+             * ========================= */
             let cashMatch = true;
             const cash = car.cash_non_mutation;
+
             if (cash) {
-              if (cashMinValue !== null && cashMaxValue !== null) {
+              if (cashMinValue !== null && cashMaxValue !== null)
                 cashMatch = cash >= cashMinValue && cash <= cashMaxValue;
-              } else if (cashMinValue !== null) {
-                cashMatch = cash >= cashMinValue;
-              } else if (cashMaxValue !== null) {
-                cashMatch = cash <= cashMaxValue;
-              }
-            } else {
-              // Kalau tidak ada promo, data ini tidak lolos filter cash
-              if (cashMinValue !== null || cashMaxValue !== null) {
-                cashMatch = false;
-              }
+              else if (cashMinValue !== null) cashMatch = cash >= cashMinValue;
+              else if (cashMaxValue !== null) cashMatch = cash <= cashMaxValue;
+            } else if (cashMinValue !== null || cashMaxValue !== null) {
+              cashMatch = false;
             }
 
-            // Semua kondisi harus true
+            /* =========================
+             * FINAL RESULT
+             * ========================= */
             return (
+              slugMatch &&
               locationMatch &&
-              policeNumberMatch &&
-              modelMatch &&
-              colorMatch &&
               yearMatch &&
-              typeMatch &&
-              seriesMatch &&
-              transmissionMatch &&
-              fuelMatch &&
-              gearMatch &&
               dpMatch &&
               angsMatch &&
               creditMatch &&
@@ -1091,25 +763,76 @@
         },
 
         clearSearch() {
+          // reset hasil
           this.result = this.cars;
+
+          // reset global search
+          this.searchAll = "";
+
+          // reset filter lain yang MASIH dipakai
           this.searchLocation = "";
-          this.searchPoliceNumber = "";
-          this.searchModel = "";
-          this.searchColor = "";
-          this.searchYear = "";
-          this.searchType = "";
-          this.searchSeries = "";
-          this.searchTransmission = "";
-          this.searchFuel = "";
-          this.searchGear = "";
+
+          this.years.begin = "";
+          this.years.end = "";
+
           this.dpMin = null;
           this.dpMax = null;
+
           this.angsMin = null;
           this.angsMax = null;
+
           this.creditMin = null;
           this.creditMax = null;
+
           this.cashMin = null;
           this.cashMax = null;
+        },
+
+        async login() {
+          this.loginConfig.isLoading = true;
+
+          const baseUrl = "https://www.auto88group.com/api/login";
+
+          try {
+            const response = await fetch(baseUrl, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+              },
+              body: JSON.stringify({
+                email: this.email,
+                password: this.password,
+                token: "-",
+                from: "web",
+              }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+              throw new Error(data.message || "Login gagal");
+            }
+
+            // simpan token
+            this.tokenInput = data.token;
+
+            // panggil fungsi simpan token
+            this.saveToken();
+
+            this.loginConfig.showSuccess = true;
+            setTimeout(() => (this.loginConfig.showSuccess = false), 1500);
+          } catch (error) {
+            console.error(error);
+
+            this.loginConfig.errorMessage =
+              error.message || "Terjadi kesalahan";
+
+            this.loginConfig.showFailed = true;
+            setTimeout(() => (this.loginConfig.showFailed = false), 2000);
+          } finally {
+            this.loginConfig.isLoading = false;
+          }
         },
 
         saveToken() {
@@ -1205,10 +928,10 @@
     }
   </script>
   <script>
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker
-        .register("/sw.js")
-        .then(() => console.log("Service Worker Registered"));
-    }
+    // if ("serviceWorker" in navigator) {
+    //   navigator.serviceWorker
+    //     .register("/sw.js")
+    //     .then(() => console.log("Service Worker Registered"));
+    // }
   </script>
 </html>
