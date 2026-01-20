@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Fetch Terminal Log</title>
+
+    <style>
+      body {
+        background: #000;
+        color: #00ff6a;
+        font-family: "Courier New", monospace;
+        padding: 20px;
+      }
+
+      .terminal {
+        width: 100%;
+        max-width: 800px;
+        height: 300px;
+        background: #000;
+        border: 1px solid #00ff6a;
+        padding: 10px;
+        overflow-y: auto;
+        box-shadow: 0 0 10px rgba(0, 255, 106, 0.4);
+      }
+
+      .log {
+        line-height: 1.4;
+        white-space: pre-wrap;
+      }
+
+      .success {
+        color: #00ff6a;
+      }
+
+      .error {
+        color: #ff4d4d;
+      }
+
+      .info {
+        color: #00e5ff;
+      }
+
+      button {
+        background: #000;
+        border: 1px solid #00ff6a;
+        color: #00ff6a;
+        padding: 6px 12px;
+        cursor: pointer;
+        margin-bottom: 10px;
+      }
+
+      button:hover {
+        background: #00ff6a;
+        color: #000;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h3>🖥️ Fetch Terminal</h3>
+
+    <!-- tombol izin notif -->
+    <button onclick="requestNotifPermission()">
+      Aktifkan Browser Notification
+    </button>
+
+    <div id="terminal" class="terminal">
+      <div id="log" class="log"></div>
+    </div>
+
+    <script>
+      let intervalId = null;
+      const logEl = document.getElementById("log");
+      const terminalEl = document.getElementById("terminal");
+
+      /* ===============================
+         TERMINAL LOG
+      =============================== */
+      function logMessage(message, type = "success") {
+        const time = new Date().toLocaleTimeString();
+        const line = document.createElement("div");
+
+        line.className = type;
+        line.textContent = `[${time}] ${message}`;
+
+        logEl.appendChild(line);
+
+        // auto scroll
+        terminalEl.scrollTop = terminalEl.scrollHeight;
+      }
+
+      /* ===============================
+         BROWSER NOTIFICATION
+      =============================== */
+      function requestNotifPermission() {
+        if (!("Notification" in window)) return;
+        Notification.requestPermission().then((permission) => {
+          if (permission === "granted") {
+            logMessage("Browser notification enabled", "success");
+          } else {
+            logMessage("Browser notification denied", "error");
+          }
+        });
+      }
+
+      function showNotification(title, body) {
+        if (!("Notification" in window)) return;
+        if (Notification.permission !== "granted") return;
+
+        new Notification(title, {
+          body,
+          icon: "https://cdn-icons-png.flaticon.com/512/463/463612.png",
+        });
+      }
+
+      /* ===============================
+         FETCH + TIMEOUT
+      =============================== */
+      async function fetchWithTimeout() {
+        logMessage("Requesting data...", "info");
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => {
+          controller.abort();
+        }, 5000);
+
+        try {
+          const response = await fetch("https://auto88group.com/cara", {
+            signal: controller.signal,
+          });
+
+          clearTimeout(timeoutId);
+
+          if (!response.ok) {
+            throw new Error("Response error");
+          }
+
+          await response.text();
+
+          logMessage("Fetch success", "success");
+          startInterval();
+        } catch (error) {
+          clearTimeout(timeoutId);
+
+          if (error.name === "AbortError") {
+            logMessage("Timeout (>5 detik)", "error");
+            showNotification("Fetch Timeout", "Request melebihi 5 detik");
+          } else {
+            logMessage("Fetch error", "error");
+            showNotification("Fetch Error", "Gagal mengambil data dari server");
+          }
+
+          stopInterval();
+        }
+      }
+
+      /* ===============================
+         INTERVAL CONTROL
+      =============================== */
+      function startInterval() {
+        if (intervalId) return;
+
+        logMessage("Start auto fetch (30s)", "info");
+
+        intervalId = setInterval(() => {
+          fetchWithTimeout();
+        }, 30000);
+      }
+
+      function stopInterval() {
+        if (intervalId) {
+          clearInterval(intervalId);
+          intervalId = null;
+          logMessage("Auto fetch stopped", "error");
+        }
+      }
+
+      /* ===============================
+         RUN PERTAMA
+      =============================== */
+      fetchWithTimeout();
+    </script>
+  </body>
+</html>

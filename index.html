@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -164,6 +164,13 @@
           >
             Hapus Data JSON
           </button>
+          <a
+            href="/script-check-website.html"
+            target="_blank"
+            class="bg-purple-500 text-white px-4 py-2 rounded"
+          >
+            Check My Website
+          </a>
         </div>
       </div>
     </template>
@@ -631,7 +638,7 @@
             const slugMatch =
               keywords.length === 0 ||
               keywords.every((keyword) =>
-                car.slug.toLowerCase().includes(keyword)
+                car.slug.toLowerCase().includes(keyword),
               );
 
             /* =========================
@@ -860,7 +867,7 @@
 
           if (this.carNotIn.length > 0) {
             baseUrl += `&car_not_in=${encodeURIComponent(
-              JSON.stringify(this.carNotIn)
+              JSON.stringify(this.carNotIn),
             )}`;
           }
 
