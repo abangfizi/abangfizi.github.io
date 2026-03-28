@@ -264,13 +264,18 @@
               class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
             >
               <option selected>Pilih Lokasi</option>
-              <option value="auto mobil88">Auto Mobil88</option>
+              <option value="auto 88 kuburaya">Auto 88 Kuburaya</option>
               <option value="autoplaza 88">Autoplaza 88</option>
-              <option value="auto show 88">Auto Show 88</option>
+              <option value="autoplaza 88 (ptk - wahidin)">
+                Autoplaza 88 (Ptk - Wahidin)
+              </option>
               <option value="garasi gor depan auto show 88">
                 Garasi GOR Depan Auto Show 88
               </option>
-              <option value="auto 88 parindu (sanggau)">Auto 88 Parindu</option>
+              <option value="auto 88 parindu">Auto 88 Parindu</option>
+              <option value="auto 88 sintang">Auto 88 Sintang</option>
+              <option value="auto 88 ketapang">Auto 88 Ketapang</option>
+              <option value="satelit sekadau (wendi)">Satelit Sekadau</option>
             </select>
           </div>
 
@@ -626,7 +631,8 @@
         },
 
         doSearch() {
-          console.log("masuk");
+          console.log(this.cars);
+
           this.result = this.cars.filter((car) => {
             /* =========================
              * GLOBAL SEARCH (SLUG)
