@@ -200,6 +200,23 @@
          RUN PERTAMA
       =============================== */
       fetchWithTimeout();
+
+      /* ===============================
+         SERVICE WORKER REGISTER
+      =============================== */
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker
+          .register("/sw.js")
+          .then(() => logMessage("Service Worker registered", "success"))
+          .catch((err) => logMessage("Service Worker failed: " + err, "error"));
+      } else {
+        logMessage("Service Worker not supported", "error");
+      }
+
+      /* ===============================
+         RUN PERTAMA
+      =============================== */
+      fetchWithTimeout(); // ← ini tetap di paling bawah
     </script>
   </body>
 </html>
