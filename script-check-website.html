@@ -65,6 +65,9 @@
       const logEl = document.getElementById("log");
       const terminalEl = document.getElementById("terminal");
 
+      let audioUnlocked = false;
+      let notifAudio = null;
+
       /* ===============================
          TERMINAL LOG
       =============================== */
@@ -98,13 +101,26 @@
       }
 
       /* ===============================
-         BROWSER NOTIFICATION
+      BROWSER NOTIFICATION
       =============================== */
       async function requestNotifPermission() {
         if (!("Notification" in window)) {
           logMessage("Notifikasi tidak didukung", "error");
           return;
         }
+
+        // ✅ Unlock audio di sini karena ada user gesture (tap tombol)
+        try {
+          notifAudio = new Audio("/error-notif.mp3");
+          await notifAudio.play();
+          notifAudio.pause();
+          notifAudio.currentTime = 0;
+          audioUnlocked = true;
+          logMessage("Audio unlocked ✓", "success");
+        } catch (err) {
+          logMessage("Audio unlock gagal: " + err.message, "error");
+        }
+
         const permission = await Notification.requestPermission();
         if (permission === "granted") {
           logMessage("Notifikasi diizinkan ✓", "success");
@@ -120,9 +136,11 @@
           return;
         }
         try {
-          // ✅ Putar sound manual sebelum notif
-          const audio = new Audio("/error-notif.mp3");
-          audio.play().catch(() => {}); // catch jika autoplay diblokir browser
+          // ✅ Putar audio yang sudah di-unlock
+          if (audioUnlocked && notifAudio) {
+            notifAudio.currentTime = 0;
+            notifAudio.play().catch(() => {});
+          }
 
           const reg = await navigator.serviceWorker.ready;
           await reg.showNotification(title, {
@@ -133,7 +151,7 @@
             tag: "fetch-status",
             renotify: true,
             requireInteraction: true,
-            silent: false,
+            silent: true, // ← ganti true, biar suara custom tidak bentrok suara sistem
             timestamp: Date.now(),
             data: { url: "/script-check-website.html" },
             actions: [
