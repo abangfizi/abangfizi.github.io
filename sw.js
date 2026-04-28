@@ -1,10 +1,5 @@
 const CACHE_NAME = "fizi-app";
-const ASSETS = [
-  "/",
-  "/index.html",
-  "/script-check-website.html.html",
-  "/icon.png",
-];
+const ASSETS = ["/", "/index.html", "/script-check-website.html", "/icon.png"];
 
 // ✅ Install - cache assets
 self.addEventListener("install", (event) => {
