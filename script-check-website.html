@@ -120,8 +120,27 @@
           return;
         }
         try {
+          // ✅ Putar sound manual sebelum notif
+          const audio = new Audio("/error-notif.mp3");
+          audio.play().catch(() => {}); // catch jika autoplay diblokir browser
+
           const reg = await navigator.serviceWorker.ready;
-          await reg.showNotification(title, { body, icon: "/icon.png" });
+          await reg.showNotification(title, {
+            body,
+            icon: "/icon.png",
+            badge: "/icon.png",
+            vibrate: [200, 100, 200],
+            tag: "fetch-status",
+            renotify: true,
+            requireInteraction: true,
+            silent: false,
+            timestamp: Date.now(),
+            data: { url: "/script-check-website.html" },
+            actions: [
+              { action: "buka", title: "Buka App" },
+              { action: "tutup", title: "Tutup" },
+            ],
+          });
           logMessage(`Notif terkirim: ${title}`, "info");
         } catch (err) {
           logMessage("Notif error: " + err.message, "error");
@@ -142,6 +161,7 @@
           if (!token) {
             logMessage("Token tidak ditemukan", "error");
             clearTimeout(timeoutId);
+            stopInterval();
             return;
           }
 

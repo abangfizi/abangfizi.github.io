@@ -32,3 +32,11 @@ self.addEventListener("message", (event) => {
     });
   }
 });
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+
+  if (event.action === "buka") {
+    event.waitUntil(clients.openWindow(event.notification.data.url));
+  }
+});
