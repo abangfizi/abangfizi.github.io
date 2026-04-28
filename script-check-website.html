@@ -136,10 +136,9 @@
           return;
         }
         try {
-          // ✅ Putar audio yang sudah di-unlock
-          if (audioUnlocked && notifAudio) {
-            notifAudio.currentTime = 0;
-            notifAudio.play().catch(() => {});
+          if (audioUnlocked) {
+            const sound = new Audio("/error-notif.mp3");
+            sound.play().catch(() => {});
           }
 
           const reg = await navigator.serviceWorker.ready;
