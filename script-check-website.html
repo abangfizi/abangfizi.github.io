@@ -198,7 +198,8 @@
 
           await response.text();
           logMessage("Fetch success ✓", "success");
-          startInterval();
+          stopInterval();
+          startInterval(30000);
         } catch (error) {
           clearTimeout(timeoutId);
 
@@ -211,23 +212,23 @@
           }
 
           stopInterval();
+          startInterval(5000);
         }
       }
 
       /* ===============================
          INTERVAL CONTROL
       =============================== */
-      function startInterval() {
+      function startInterval(delay = 30000) {
         if (intervalId) return;
-        logMessage("Start auto fetch (30s)", "info");
-        intervalId = setInterval(() => fetchWithTimeout(), 30000);
+        logMessage(`Auto fetch setiap ${delay / 1000}s`, "info");
+        intervalId = setInterval(() => fetchWithTimeout(), delay);
       }
 
       function stopInterval() {
         if (intervalId) {
           clearInterval(intervalId);
           intervalId = null;
-          logMessage("Auto fetch stopped", "error");
         }
       }
 
