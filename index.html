@@ -3,16 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Auto88Group Cars</title>
+    <title>Personal Utility</title>
     <script src="//unpkg.com/alpinejs" defer></script>
     <link rel="manifest" href="manifest.json" />
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   </head>
   <body class="bg-gray-100 p-6 relative" x-data="carApp()">
+    <!-- Alert sukses -->
     <div
       x-show="loginConfig.showSuccess"
       x-transition
-      id="successAlert"
       class="absolute flex items-center gap-2 p-4 mb-4 right-0 text-sm text-blue-800 rounded-lg bg-blue-100"
       role="alert"
       style="display: none"
@@ -36,10 +36,10 @@
       </button>
     </div>
 
+    <!-- Alert gagal -->
     <div
       x-show="loginConfig.showFailed"
       x-transition
-      id="failedAlert"
       class="absolute flex items-center gap-2 p-4 mb-4 right-0 text-sm text-red-800 rounded-lg bg-red-100"
       role="alert"
       style="display: none"
@@ -63,7 +63,7 @@
       </button>
     </div>
 
-    <!-- Input Token -->
+    <!-- Form Login (muncul jika belum ada token) -->
     <template x-if="!token">
       <div class="mb-4 p-4 bg-white rounded shadow">
         <label class="block mb-2 font-semibold">Email</label>
@@ -75,6 +75,7 @@
           type="password"
           class="border p-2 w-full mb-2"
         />
+
         <button
           @click="login()"
           class="bg-blue-500 text-white px-4 py-2 rounded flex items-center gap-2"
@@ -86,7 +87,7 @@
           >
             <svg
               aria-hidden="true"
-              class="w-5 h-5 text-neutral-tertiary animate-spin fill-brand"
+              class="w-5 h-5 animate-spin"
               viewBox="0 0 100 101"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
@@ -107,421 +108,36 @@
       </div>
     </template>
 
-    <!-- Token Actions -->
-
+    <!-- Tombol Hapus Token (muncul jika sudah login) -->
     <template x-if="token">
-      <div
-        x-data="{    
-        showActions: false 
-      }"
-        class="space-y-3"
-      >
+      <div class="mb-4 p-4 bg-white rounded shadow flex flex-wrap gap-2">
         <button
-          @click="showActions = !showActions"
-          class="p-2 text-xs font-medium text-center text-white bg-neutral-700 rounded-full hover:bg-neutral-800 focus:ring-4 focus:outline-none focus:ring-neutral-300"
+          @click="clearToken()"
+          class="bg-red-500 text-white px-4 py-2 rounded"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            class="size-3"
-          >
-            <path
-              fill-rule="evenodd"
-              d="M7.84 1.804A1 1 0 0 1 8.82 1h2.36a1 1 0 0 1 .98.804l.331 1.652a6.993 6.993 0 0 1 1.929 1.115l1.598-.54a1 1 0 0 1 1.186.447l1.18 2.044a1 1 0 0 1-.205 1.251l-1.267 1.113a7.047 7.047 0 0 1 0 2.228l1.267 1.113a1 1 0 0 1 .206 1.25l-1.18 2.045a1 1 0 0 1-1.187.447l-1.598-.54a6.993 6.993 0 0 1-1.929 1.115l-.33 1.652a1 1 0 0 1-.98.804H8.82a1 1 0 0 1-.98-.804l-.331-1.652a6.993 6.993 0 0 1-1.929-1.115l-1.598.54a1 1 0 0 1-1.186-.447l-1.18-2.044a1 1 0 0 1 .205-1.251l1.267-1.114a7.05 7.05 0 0 1 0-2.227L1.821 7.773a1 1 0 0 1-.206-1.25l1.18-2.045a1 1 0 0 1 1.187-.447l1.598.54A6.992 6.992 0 0 1 7.51 3.456l.33-1.652ZM10 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"
-              clip-rule="evenodd"
-            />
-          </svg>
+          Hapus Token
         </button>
-        <div
-          x-show="showActions"
-          class="mb-4 flex flex-wrap gap-2 bg-white rounded p-4 shadow"
+        <a
+          href="/script-check-website.html"
+          target="_blank"
+          class="bg-purple-500 text-white px-4 py-2 rounded"
         >
-          <button
-            @click="fetchCars()"
-            class="bg-green-500 text-white px-4 py-2 rounded"
-          >
-            Ambil Data Mobil
-          </button>
-          <button
-            @click="clearToken()"
-            class="bg-red-500 text-white px-4 py-2 rounded"
-          >
-            Hapus Token
-          </button>
-          <button
-            @click="clearData()"
-            class="bg-yellow-500 text-white px-4 py-2 rounded"
-          >
-            Hapus Data JSON
-          </button>
-          <a
-            href="/script-check-website.html"
-            target="_blank"
-            class="bg-purple-500 text-white px-4 py-2 rounded"
-          >
-            Check My Website
-          </a>
-        </div>
-      </div>
-    </template>
-
-    <!-- Loading -->
-    <template x-if="loading">
-      <div class="mb-4">Loading data...</div>
-    </template>
-
-    <template x-if="token">
-      <div
-        x-data="{ showFilter: true }"
-        class="mb-4 bg-white rounded p-4 shadow"
-      >
-        <div class="fixed bottom-6 right-6">
-          <ul class="space-y-2 text-center">
-            <li>
-              <button
-                @click="doSearch(); showFilter = false;"
-                class="p-3 text-sm font-medium text-center text-white rounded-full bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  class="size-5"
-                >
-                  <path
-                    fill-rule="evenodd"
-                    d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
-              </button>
-            </li>
-            <li>
-              <button
-                @click="clearSearch(); showFilter = true; scrollToTop()"
-                class="p-3 text-sm font-medium text-center text-white rounded-full bg-gradient-to-r from-red-400 via-red-500 to-red-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-red-300"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  class="size-5"
-                >
-                  <path
-                    fill-rule="evenodd"
-                    d="M7.22 3.22A.75.75 0 0 1 7.75 3h9A2.25 2.25 0 0 1 19 5.25v9.5A2.25 2.25 0 0 1 16.75 17h-9a.75.75 0 0 1-.53-.22L.97 10.53a.75.75 0 0 1 0-1.06l6.25-6.25Zm3.06 4a.75.75 0 1 0-1.06 1.06L10.94 10l-1.72 1.72a.75.75 0 1 0 1.06 1.06L12 11.06l1.72 1.72a.75.75 0 1 0 1.06-1.06L13.06 10l1.72-1.72a.75.75 0 0 0-1.06-1.06L12 8.94l-1.72-1.72Z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
-              </button>
-            </li>
-            <li>
-              <button
-                @click="scrollToTop()"
-                class="p-2 text-xs font-medium text-center text-white bg-cyan-700 rounded-full hover:bg-cyan-800 focus:ring-4 focus:outline-none focus:ring-cyan-300"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  class="size-5"
-                >
-                  <path
-                    fill-rule="evenodd"
-                    d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm-.75-4.75a.75.75 0 0 0 1.5 0V8.66l1.95 2.1a.75.75 0 1 0 1.1-1.02l-3.25-3.5a.75.75 0 0 0-1.1 0L6.2 9.74a.75.75 0 1 0 1.1 1.02l1.95-2.1v4.59Z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
-              </button>
-            </li>
-          </ul>
-        </div>
-        <button
-          @click="showFilter = !showFilter"
-          class="w-full text-white bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-cyan-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2"
-          x-text="showFilter ? 'Sembunyikan Filter' : 'Tampilkan Filter'"
-        ></button>
-        <div x-show="showFilter" class="space-y-3 mt-3">
-          <div>
-            <label
-              for="location"
-              class="block text-sm font-medium text-gray-900"
-              >Lokasi</label
-            >
-            <select
-              x-model="searchLocation"
-              id="location"
-              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-            >
-              <option selected>Pilih Lokasi</option>
-              <option value="auto 88 kuburaya">Auto 88 Kuburaya</option>
-              <option value="autoplaza 88">Autoplaza 88</option>
-              <option value="autoplaza 88 (ptk - wahidin)">
-                Autoplaza 88 (Ptk - Wahidin)
-              </option>
-              <option value="garasi gor depan auto show 88">
-                Garasi GOR Depan Auto Show 88
-              </option>
-              <option value="auto 88 parindu">Auto 88 Parindu</option>
-              <option value="auto 88 sintang">Auto 88 Sintang</option>
-              <option value="auto 88 ketapang">Auto 88 Ketapang</option>
-              <option value="satelit sekadau (wendi)">Satelit Sekadau</option>
-            </select>
-          </div>
-
-          <div>
-            <label
-              for="general_search"
-              class="block text-sm font-medium text-gray-900"
-              >Cari</label
-            >
-            <input
-              type="text"
-              id="general_search"
-              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-              placeholder="Cari semua"
-              x-model="searchAll"
-            />
-          </div>
-
-          <div>
-            <label for="year" class="block text-sm font-medium text-gray-900"
-              >Rentang Tahun</label
-            >
-            <div class="flex gap-2">
-              <input
-                type="number"
-                id="beginYear"
-                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                :placeholder=" new Date().getFullYear() - 5"
-                x-model="years.begin"
-              />
-              <input
-                type="number"
-                id="endYear"
-                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                :placeholder=" new Date().getFullYear()"
-                x-model="years.end"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label for="dp" class="block text-sm font-medium text-gray-900"
-              >Rentang DP</label
-            >
-            <div class="flex gap-2">
-              <input
-                type="number"
-                id="dpmin"
-                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                placeholder="1"
-                x-model="dpMin"
-              />
-              <input
-                type="number"
-                id="dpmax"
-                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                placeholder="7"
-                x-model="dpMax"
-              />
-            </div>
-          </div>
-          <div>
-            <label for="angs" class="block text-sm font-medium text-gray-900"
-              >Rentang Angsuran</label
-            >
-            <div class="flex gap-2">
-              <input
-                type="number"
-                id="angsmin"
-                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                placeholder="2"
-                x-model="angsMin"
-              />
-              <input
-                type="number"
-                id="angsmax"
-                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                placeholder="5"
-                x-model="angsMax"
-              />
-            </div>
-          </div>
-          <div>
-            <label for="credit" class="block text-sm font-medium text-gray-900"
-              >Rentang Harga Kredit</label
-            >
-            <div class="flex gap-2">
-              <input
-                type="number"
-                id="creditmin"
-                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                placeholder="60"
-                x-model="creditMin"
-              />
-              <input
-                type="number"
-                id="creditmax"
-                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                placeholder="500"
-                x-model="creditMax"
-              />
-            </div>
-          </div>
-          <div>
-            <label for="cash" class="block text-sm font-medium text-gray-900"
-              >Rentang Harga Cash</label
-            >
-            <div class="flex gap-2">
-              <input
-                type="number"
-                id="cashmin"
-                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                placeholder="60"
-                x-model="cashMin"
-              />
-              <input
-                type="number"
-                id="cashmax"
-                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                placeholder="500"
-                x-model="cashMax"
-              />
-            </div>
-          </div>
-          <div>
-            <button
-              @click="doSearch()"
-              type="button"
-              class="text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2"
-            >
-              Filter
-            </button>
-            <button
-              @click="clearSearch()"
-              type="button"
-              class="text-white bg-gradient-to-r from-red-400 via-red-500 to-red-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2"
-            >
-              Clear Filter
-            </button>
-          </div>
-        </div>
-      </div>
-    </template>
-
-    <!-- Card List -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <template x-for="car in result" :key="car.id">
-        <div
-          :class="car.sold_date ? 'bg-red-200  rounded shadow p-4 w-full' : 'bg-white rounded shadow p-4 w-full'"
-          x-data="{  
-           isBlur: false,
-          formatMillion(value) {
-      const num = value / 1000000;
-      const truncated = Math.floor(num * 10) / 10;
-      return Number.isInteger(truncated) ? truncated.toString() : truncated.toFixed(1);
-    }}"
+          Check My Website
+        </a>
+        <a
+          href="/generator.html"
+          class="bg-blue-500 text-white px-4 py-2 rounded"
         >
-          <div class="flex gap-2 items-center mb-2">
-            <div class="text-sm font-semibold" x-text="car.police_number"></div>
-            <div
-              x-show="car.sold_date"
-              class="bg-red-100 text-red-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-sm dark:bg-red-900 dark:text-red-300"
-              x-text="'Sudah Terjual'"
-            ></div>
-          </div>
-          <!-- <img :src="imageUrl(car)" class="w-full h-48 object-cover mb-2" /> -->
-
-          <img
-            loading="lazy"
-            :src="imageUrl(car)"
-            class="w-full h-48 object-cover mb-2 cursor-pointer"
-            @click="openModal(car)"
-          />
-          <div x-text="car.name" class="font-semibold"></div>
-
-          <div
-            class="font-medium text-sm"
-            x-text="`${car.brand.name} ${car.car_model.name} ${car.year}`"
-          ></div>
-          <div
-            class="text-xs"
-            x-text="`${car.type.name} ${car.series.name} ${(car.cylinder.volume / 1000).toFixed(1)} ${car.transmission.type === 'MANUAL' ? 'M/T' : (car.transmission.type === 'MATIC' ? 'A/T' : car.transmission.type)}`"
-          ></div>
-          <div
-            class="text-xs italic"
-            x-text="`${car.fuel.name} ${car.gear.name}`"
-          ></div>
-          <div
-            @click="isBlur = false"
-            class="text-sm text-white font-bold flex w-full cursor-pointer"
-            :class="isBlur ? 'blur-sm filter transition duration-200' : 'text-sm text-white font-bold flex w-full transition duration-100'"
-          >
-            <div
-              class="p-2 rounded-l-md bg-blue-500"
-              x-text="(() => {
-      const p = car.promo.find(item => item.star === 1);
-      if (!p) return 'Tidak ada promo';
-      const dp = formatMillion(p.down_payment);
-      const cicilan = formatMillion(p.monthly_installment);
-      return `💰${dp} 💳${cicilan} / ${p.installment_period}`;
-    })()"
-            ></div>
-            <div
-              class="p-2 bg-purple-500 flex items-center"
-              x-text="(() => {
-      const cashNonMut = formatMillion(car.cash_mutation)
-      const creditNonMut = formatMillion(car.credit_mutation)
-      return `${cashNonMut}/${creditNonMut}`;
-    })()"
-            ></div>
-            <div
-              class="p-2 rounded-r-md bg-indigo-500 flex items-center"
-              x-text="(() => {
-      const cashNonMut = formatMillion(car.cash_non_mutation)
-      const creditNonMut = formatMillion(car.credit_non_mutation)
-      return `${cashNonMut}/${creditNonMut}`;
-    })()"
-            ></div>
-          </div>
-        </div>
-      </template>
-      <!-- Modal -->
-      <div
-        x-show="modalOpen"
-        x-transition
-        class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
-      >
-        <div class="bg-white rounded max-w-lg w-full relative">
-          <!-- Close button -->
-          <button
-            class="absolute top-2 right-2 text-gray-700"
-            @click="modalOpen = false"
-          >
-            ✖
-          </button>
-          <img :src="currentImageUrl()" class="w-full object-contain" />
-          <!-- Image slider -->
-          <div class="flex items-center justify-between mb-2">
-            <button class="px-2 py-1 bg-gray-200 rounded" @click="prevImage()">
-              ◀
-            </button>
-
-            <button class="px-2 py-1 bg-gray-200 rounded" @click="nextImage()">
-              ▶
-            </button>
-          </div>
-
-          <!-- Info -->
-          <div class="text-center text-sm text-gray-600">
-            Gambar <span x-text="currentIndex + 1"></span> dari
-            <span x-text="selectedCar?.photos?.length || 0"></span>
-          </div>
-        </div>
+          Kirim Data
+        </a>
+        <a
+          href="/scanner.html"
+          class="bg-green-500 text-white px-4 py-2 rounded"
+        >
+          Terima Data
+        </a>
       </div>
-    </div>
+    </template>
   </body>
 
   <script>
@@ -529,6 +145,7 @@
       return {
         email: "",
         password: "",
+        token: null,
         loginConfig: {
           isLoading: false,
           errorMessage: "",
@@ -536,281 +153,30 @@
           showFailed: false,
         },
 
-        token: null,
-        tokenInput: "",
-        cars: [],
-        total: 0,
-        carNotIn: [],
-        loading: false,
-        skip: 0,
-        perPage: 150,
-        result: [],
-        modalOpen: false,
-        selectedCar: null,
-        currentIndex: 0,
-
-        searchAll: "",
-        years: {
-          begin: "",
-          end: "",
-        },
-        searchLocation: "",
-        dpMin: null,
-        dpMax: null,
-        angsMin: null,
-        angsMax: null,
-        creditMin: null,
-        creditMax: null,
-        cashMin: null,
-        cashMax: null,
-
         init() {
           this.token = localStorage.getItem("token");
-          const savedData = localStorage.getItem("cars");
-          if (savedData) {
-            this.cars = JSON.parse(savedData);
-            this.result = this.cars;
-          }
-          console.log("masuk");
-        },
-        scrollToTop() {
-          window.scrollTo({ top: 0, behavior: "smooth" });
-        },
-
-        imageUrl(car) {
-          if (car.photos && car.photos.length > 0) {
-            return `https://www.auto88group.com/image/car/${car.photos[0].car_id}/${car.photos[0].image}`;
-          }
-          return "https://i.pinimg.com/736x/0a/26/f2/0a26f24fcab6f80a26600255891c187a.jpg";
-        },
-
-        openModal(car) {
-          if (car.photos && car.photos.length > 0) {
-            this.selectedCar = car;
-            this.currentIndex = 0;
-            this.modalOpen = true;
-          } else {
-            alert("Mobil ini tidak memiliki foto.");
-          }
-        },
-
-        currentImageUrl() {
-          if (
-            this.selectedCar &&
-            this.selectedCar.photos &&
-            this.selectedCar.photos.length > 0
-          ) {
-            const photo = this.selectedCar.photos[this.currentIndex];
-            return `https://www.auto88group.com/image/car/${photo.car_id}/${photo.image}`;
-          }
-          return "https://i.pinimg.com/736x/0a/26/f2/0a26f24fcab6f80a26600255891c187a.jpg";
-        },
-
-        prevImage() {
-          if (this.selectedCar && this.selectedCar.photos.length > 0) {
-            this.currentIndex =
-              (this.currentIndex - 1 + this.selectedCar.photos.length) %
-              this.selectedCar.photos.length;
-          }
-        },
-
-        nextImage() {
-          if (this.selectedCar && this.selectedCar.photos.length > 0) {
-            this.currentIndex =
-              (this.currentIndex + 1) % this.selectedCar.photos.length;
-          }
-        },
-
-        doSearch() {
-          console.log(this.cars);
-
-          this.result = this.cars.filter((car) => {
-            /* =========================
-             * GLOBAL SEARCH (SLUG)
-             * ========================= */
-            const keywords = this.searchAll
-              ? this.searchAll.toLowerCase().trim().split(/\s+/)
-              : [];
-
-            const slugMatch =
-              keywords.length === 0 ||
-              keywords.every((keyword) =>
-                car.slug.toLowerCase().includes(keyword),
-              );
-
-            /* =========================
-             * LOCATION (TETAP)
-             * ========================= */
-            const locationKeyword = this.searchLocation.toLowerCase();
-            const locationMatch =
-              !locationKeyword ||
-              car.last_position.toLowerCase().includes(locationKeyword);
-
-            /* =========================
-             * YEAR RANGE
-             * ========================= */
-            const beginYear = this.years.begin
-              ? parseInt(this.years.begin)
-              : null;
-            const endYear = this.years.end ? parseInt(this.years.end) : null;
-
-            let yearMatch = true;
-            if (beginYear !== null && endYear !== null) {
-              yearMatch =
-                parseInt(car.year) >= beginYear &&
-                parseInt(car.year) <= endYear;
-            } else if (beginYear !== null) {
-              yearMatch = parseInt(car.year) >= beginYear;
-            } else if (endYear !== null) {
-              yearMatch = parseInt(car.year) <= endYear;
-            }
-
-            /* =========================
-             * RANGE FILTER
-             * ========================= */
-            const dpMinValue =
-              this.dpMin !== null ? this.dpMin * 1_000_000 : null;
-            const dpMaxValue =
-              this.dpMax !== null ? this.dpMax * 1_000_000 : null;
-
-            const angsMinValue =
-              this.angsMin !== null ? this.angsMin * 1_000_000 : null;
-            const angsMaxValue =
-              this.angsMax !== null ? this.angsMax * 1_000_000 : null;
-
-            const creditMinValue =
-              this.creditMin !== null ? this.creditMin * 1_000_000 : null;
-            const creditMaxValue =
-              this.creditMax !== null ? this.creditMax * 1_000_000 : null;
-
-            const cashMinValue =
-              this.cashMin !== null ? this.cashMin * 1_000_000 : null;
-            const cashMaxValue =
-              this.cashMax !== null ? this.cashMax * 1_000_000 : null;
-
-            /* =========================
-             * DP PROMO
-             * ========================= */
-            let dpMatch = true;
-            const promo = car.promo.find((item) => item.star === 1);
-
-            if (promo) {
-              const dp = promo.down_payment;
-              if (dpMinValue !== null && dpMaxValue !== null)
-                dpMatch = dp >= dpMinValue && dp <= dpMaxValue;
-              else if (dpMinValue !== null) dpMatch = dp >= dpMinValue;
-              else if (dpMaxValue !== null) dpMatch = dp <= dpMaxValue;
-            } else if (dpMinValue !== null || dpMaxValue !== null) {
-              dpMatch = false;
-            }
-
-            /* =========================
-             * ANGSURAN
-             * ========================= */
-            let angsMatch = true;
-            if (promo) {
-              const angs = promo.monthly_installment;
-              if (angsMinValue !== null && angsMaxValue !== null)
-                angsMatch = angs >= angsMinValue && angs <= angsMaxValue;
-              else if (angsMinValue !== null) angsMatch = angs >= angsMinValue;
-              else if (angsMaxValue !== null) angsMatch = angs <= angsMaxValue;
-            } else if (angsMinValue !== null || angsMaxValue !== null) {
-              angsMatch = false;
-            }
-
-            /* =========================
-             * CREDIT
-             * ========================= */
-            let creditMatch = true;
-            const credit = car.credit_non_mutation;
-
-            if (credit) {
-              if (creditMinValue !== null && creditMaxValue !== null)
-                creditMatch =
-                  credit >= creditMinValue && credit <= creditMaxValue;
-              else if (creditMinValue !== null)
-                creditMatch = credit >= creditMinValue;
-              else if (creditMaxValue !== null)
-                creditMatch = credit <= creditMaxValue;
-            } else if (creditMinValue !== null || creditMaxValue !== null) {
-              creditMatch = false;
-            }
-
-            /* =========================
-             * CASH
-             * ========================= */
-            let cashMatch = true;
-            const cash = car.cash_non_mutation;
-
-            if (cash) {
-              if (cashMinValue !== null && cashMaxValue !== null)
-                cashMatch = cash >= cashMinValue && cash <= cashMaxValue;
-              else if (cashMinValue !== null) cashMatch = cash >= cashMinValue;
-              else if (cashMaxValue !== null) cashMatch = cash <= cashMaxValue;
-            } else if (cashMinValue !== null || cashMaxValue !== null) {
-              cashMatch = false;
-            }
-
-            /* =========================
-             * FINAL RESULT
-             * ========================= */
-            return (
-              slugMatch &&
-              locationMatch &&
-              yearMatch &&
-              dpMatch &&
-              angsMatch &&
-              creditMatch &&
-              cashMatch
-            );
-          });
-        },
-
-        clearSearch() {
-          // reset hasil
-          this.result = this.cars;
-
-          // reset global search
-          this.searchAll = "";
-
-          // reset filter lain yang MASIH dipakai
-          this.searchLocation = "";
-
-          this.years.begin = "";
-          this.years.end = "";
-
-          this.dpMin = null;
-          this.dpMax = null;
-
-          this.angsMin = null;
-          this.angsMax = null;
-
-          this.creditMin = null;
-          this.creditMax = null;
-
-          this.cashMin = null;
-          this.cashMax = null;
         },
 
         async login() {
           this.loginConfig.isLoading = true;
 
-          const baseUrl = "https://www.auto88group.com/api/login";
-
           try {
-            const response = await fetch(baseUrl, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Accept: "application/json",
+            const response = await fetch(
+              "https://www.auto88group.com/api/login",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Accept: "application/json",
+                },
+                body: JSON.stringify({
+                  email: this.email,
+                  password: this.password,
+                  token: "-",
+                  from: "web",
+                }),
               },
-              body: JSON.stringify({
-                email: this.email,
-                password: this.password,
-                token: "-",
-                from: "web",
-              }),
-            });
+            );
 
             const data = await response.json();
 
@@ -819,19 +185,15 @@
             }
 
             // simpan token
-            this.tokenInput = data.token;
-
-            // panggil fungsi simpan token
-            this.saveToken();
+            this.token = data.token;
+            localStorage.setItem("token", data.token);
 
             this.loginConfig.showSuccess = true;
             setTimeout(() => (this.loginConfig.showSuccess = false), 1500);
           } catch (error) {
             console.error(error);
-
             this.loginConfig.errorMessage =
               error.message || "Terjadi kesalahan";
-
             this.loginConfig.showFailed = true;
             setTimeout(() => (this.loginConfig.showFailed = false), 2000);
           } finally {
@@ -839,103 +201,11 @@
           }
         },
 
-        saveToken() {
-          this.token = this.tokenInput;
-          localStorage.setItem("token", this.tokenInput);
-          this.tokenInput = "";
-        },
-
         clearToken() {
           localStorage.removeItem("token");
           this.token = null;
-          this.cars = [];
-          this.result = [];
-        },
-
-        fetchCars(carNotIn = []) {
-          this.loading = true;
-
-          // Buat URL dasar + tambahkan parameter car_not_in jika ada
-          let baseUrl =
-            "https://www.auto88group.com/api/index-car?search=&price_start=0&price_end=0&plat=0&rows=ALL&type_id=0&car_model_id=0&series_id=0&cylinder_id=0&kind_id=0&brand_id=0&color_id=0&fuel_id=0&transmission_id=0&gear_id=0&last_position=&sort_car=CHEAP&bpkb=0&gesekan=0&database_sold=0&unknown=0&pelabuhan=0&pass_inspection=0&not_ready=0&not_photo=0&approved=0&hold=0&ready=0&skip=" +
-            this.skip +
-            "&per_page=" +
-            this.perPage;
-
-          if (this.carNotIn.length > 0) {
-            baseUrl += `&car_not_in=${encodeURIComponent(
-              JSON.stringify(this.carNotIn),
-            )}`;
-          }
-
-          fetch(baseUrl, {
-            headers: {
-              Authorization: "Bearer " + this.token,
-            },
-          })
-            .then((res) => res.json())
-            .then((data) => {
-              const newCars = data.data || [];
-              this.total = data.total;
-              console.log(newCars);
-              // Kalau ini fetch pertama
-              if (!this.cars) {
-                this.cars = newCars;
-                this.result = this.cars;
-              } else {
-                newCars.forEach((item) => {
-                  if (!this.carNotIn.includes(item.id)) {
-                    this.cars.push(item);
-                  }
-                });
-
-                newCars.forEach((item) => {
-                  this.carNotIn.push(item.id);
-                });
-              }
-
-              // Simpan ke localStorage
-              // localStorage.setItem("cars", JSON.stringify(this.cars));
-              this.skip = this.cars.length;
-
-              // Cek apakah sudah cukup
-              if (this.cars.length < 400 && newCars.length > 0) {
-                const currentIds = this.cars.map((car) => car.id);
-                this.fetchCars(); // rekursif panggil ulang
-              } else {
-                // this.cars = this.cars.filter(
-                //   (car) => car.sold_date == null || car.sold_date === ""
-                // );
-                this.result = this.cars;
-                localStorage.setItem("cars", JSON.stringify(this.cars));
-              }
-            })
-            .catch((err) => alert("Gagal mengambil data: " + err))
-            .finally(() => {
-              this.loading = false;
-            });
-        },
-
-        clearData() {
-          localStorage.removeItem("cars");
-          this.cars = [];
-          this.result = [];
-        },
-
-        imageUrl(car) {
-          if (car.photos && car.photos.length > 0) {
-            return `https://www.auto88group.com/image/car/${car.photos[0].car_id}/${car.photos[0].image}`;
-          }
-          return "https://i.pinimg.com/736x/0a/26/f2/0a26f24fcab6f80a26600255891c187a.jpg";
         },
       };
     }
-  </script>
-  <script>
-    // if ("serviceWorker" in navigator) {
-    //   navigator.serviceWorker
-    //     .register("/sw.js")
-    //     .then(() => console.log("Service Worker Registered"));
-    // }
   </script>
 </html>
