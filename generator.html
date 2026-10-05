@@ -1,126 +1,162 @@
 <!doctype html>
-<html lang="en">
+<html lang="id">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title>Kirim Data</title>
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
-
   <body>
     <div id="app">
       <a href="/" class="block text-center text-sm text-blue-600 underline mt-4"
         >&larr; Kembali</a
       >
-      <div
-        class="flex flex-col items-start w-full items-center justify-center align-middle"
-      >
-        <div class="text-xl my-4">Data Sender Mode</div>
-        <div class="text-sm mb-4">{{user_message}}</div>
-        <div class="w-1/2 mb-4">
+      <div class="flex flex-col w-full items-center justify-center">
+        <div class="text-xl my-4">Mode Kirim Data</div>
+        <div class="text-sm mb-2 text-center">{{ msg }}</div>
+        <div class="w-64 h-2 bg-gray-200 mb-4">
+          <div class="h-2 bg-blue-500" :style="{ width: pct + '%' }"></div>
+        </div>
+        <div class="w-11/12 max-w-md mb-4">
           <input
-            class="block w-full text-sm text-gray-900 border border-gray-300 cursor-pointer bg-gray-50 focus:outline-none"
             id="file_input"
             type="file"
+            :disabled="running"
+            class="block w-full text-sm text-gray-900 border border-gray-300 cursor-pointer bg-gray-50"
           />
         </div>
+        <div class="flex gap-4 mb-4 text-sm">
+          <label
+            >Ukuran chunk
+            <select
+              v-model.number="chunkSize"
+              :disabled="running"
+              class="border p-1"
+            >
+              <option :value="250">250 (paling andal)</option>
+              <option :value="400">400</option>
+              <option :value="600">600 (cepat)</option>
+            </select>
+          </label>
+          <label
+            >Kecepatan
+            <select v-model.number="fps" :disabled="running" class="border p-1">
+              <option :value="4">4 fps</option>
+              <option :value="6">6 fps</option>
+              <option :value="8">8 fps</option>
+              <option :value="10">10 fps</option>
+            </select>
+          </label>
+        </div>
         <button
-          v-if="!is_transferring"
-          v-on:click="start_transfer"
+          v-if="!running"
+          @click="start"
           class="mb-6 p-1 border-2 border-gray-500"
         >
-          Start Transfer
+          Mulai Kirim
         </button>
-        <button
-          v-else
-          v-on:click="stop_transfer"
-          class="mb-6 p-1 border-2 border-gray-500"
-        >
-          Stop Transfer
+        <button v-else @click="stop" class="mb-6 p-1 border-2 border-gray-500">
+          Berhenti
         </button>
-        <div id="qrcode" class=""></div>
+        <div id="qrcode"></div>
       </div>
     </div>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.0.3/pako.min.js"></script>
     <script>
-      const { createApp, ref, onMounted } = Vue;
+      const { createApp, ref, computed, onMounted } = Vue;
 
       createApp({
         setup() {
-          const user_message = ref("Choose file to get started");
-          const is_transferring = ref(false);
-          const chunk_size = 250;
-          let qrcode_object = "";
+          const IDLE = "Pilih file untuk memulai";
+          const msg = ref(IDLE);
+          const running = ref(false);
+          const chunkSize = ref(400);
+          const fps = ref(8);
+          const current = ref(0);
+          const total = ref(0);
+          const pct = computed(() =>
+            total.value ? (current.value / total.value) * 100 : 0,
+          );
+          let qr,
+            runId = 0;
 
-          const encode_data = (index, input_bytes) => {
-            let encoded_string = String.fromCharCode.apply(null, input_bytes);
-            let utf8Encoder = new TextEncoder();
-            let utf8_bytes = utf8Encoder.encode(encoded_string);
-            let encoded_data = btoa(
-              String.fromCharCode.apply(null, utf8_bytes),
-            );
-            return index + "," + encoded_data;
+          const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+          const toB64 = (bytes) => {
+            let s = "";
+            for (let i = 0; i < bytes.length; i += 8192)
+              s += String.fromCharCode.apply(null, bytes.subarray(i, i + 8192));
+            return btoa(s);
+          };
+          const show = (text) => {
+            qr.clear();
+            qr.makeCode(text);
           };
 
-          const stop_transfer = () => {
-            is_transferring.value = false;
-            user_message.value = "Choose file to get started";
+          const stop = () => {
+            runId++;
+            running.value = false;
+            current.value = 0;
+            msg.value = IDLE;
+            show(IDLE);
           };
 
-          const start_transfer = async () => {
-            let file_input = document.getElementById("file_input");
-            is_transferring.value = true;
-            let file = file_input.files[0];
-            let data_chunks = [];
-            let data_array = pako.gzip(await file.arrayBuffer(), { level: 9 });
-            let total_chunks = Math.ceil(data_array.length / chunk_size);
-            let file_metadata = { name: file.name, chunks: total_chunks };
-            qrcode_object.clear();
-            qrcode_object.makeCode(JSON.stringify(file_metadata));
-            user_message.value = "Starting data transfer in few seconds ...";
-            await new Promise((r) => setTimeout(r, 1000));
-            for (let i = 0; i < total_chunks; i++) {
-              await new Promise((r) => setTimeout(r, 50));
-              let start = i * chunk_size;
-              let chunk = data_array.subarray(start, start + chunk_size);
-              let encoded_data = encode_data(i, chunk);
-              qrcode_object.clear();
-              qrcode_object.makeCode(encoded_data);
-              user_message.value = `Transfering Chunk ${i}/${total_chunks} ...`;
-              if (!is_transferring.value) {
-                user_message.value = "Choose file to get started";
-                qrcode_object.clear();
-                qrcode_object.makeCode("Choose file to get started");
-                break;
+          const start = async () => {
+            const file = document.getElementById("file_input").files[0];
+            if (!file) {
+              msg.value = "Pilih file dulu";
+              return;
+            }
+            const id = ++runId;
+            running.value = true;
+            msg.value = "Mengompres file ...";
+
+            const data = pako.gzip(new Uint8Array(await file.arrayBuffer()), {
+              level: 9,
+            });
+            const size = chunkSize.value;
+            const n = Math.ceil(data.length / size);
+            const delay = 1000 / fps.value;
+            const sid = Math.random().toString(36).slice(2, 8);
+            const meta = `M|${sid}|${n}|${encodeURIComponent(file.name)}`;
+            total.value = n;
+            const est = Math.ceil((n * 1.1 * delay) / 1000);
+            let round = 0;
+
+            // Kirim berulang-ulang: chunk yang terlewat akan muncul lagi di putaran berikutnya
+            while (id === runId) {
+              round++;
+              for (let i = 0; i < n && id === runId; i++) {
+                if (i % 10 === 0) {
+                  show(meta);
+                  await sleep(delay);
+                  if (id !== runId) break;
+                }
+                show(
+                  `D|${sid}|${i}|${n}|` +
+                    toB64(data.subarray(i * size, (i + 1) * size)),
+                );
+                current.value = i + 1;
+                msg.value = `Putaran ${round} - chunk ${i + 1}/${n} (~${est} dtk/putaran). Tekan Berhenti jika penerima sudah selesai.`;
+                await sleep(delay);
               }
             }
-            stop_transfer();
           };
 
           onMounted(() => {
-            console.log("Application Initialized ...");
-            let lowest_size =
-              Math.min(window.innerWidth, window.innerHeight) / 1.5;
-            qrcode_object = new QRCode("qrcode", {
-              text: "Choose file to get started",
-              width: lowest_size,
-              height: lowest_size,
-              typeNumber: 40,
+            const size = Math.min(window.innerWidth, window.innerHeight) / 1.5;
+            qr = new QRCode("qrcode", {
+              text: IDLE,
+              width: size,
+              height: size,
               colorDark: "#000000",
               colorLight: "#ffffff",
-              correctLevel: QRCode.CorrectLevel.M,
+              correctLevel: QRCode.CorrectLevel.L,
             });
           });
 
-          return {
-            user_message,
-            start_transfer,
-            stop_transfer,
-            is_transferring,
-          };
+          return { msg, running, chunkSize, fps, pct, start, stop };
         },
       }).mount("#app");
     </script>

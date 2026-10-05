@@ -1,167 +1,196 @@
 <!doctype html>
-<html lang="en">
+<html lang="id">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title>Terima Data</title>
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
-
   <body>
     <div id="app">
       <a href="/" class="block text-center text-sm text-blue-600 underline mt-4"
         >&larr; Kembali</a
       >
-      <div
-        class="flex flex-col items-start w-full items-center justify-center align-middle"
-      >
-        <div class="text-xl my-4">Data Receiver Mode</div>
-        <div class="text-sm mb-4">{{user_message}}</div>
-        <div class="text-sm mb-4">
-          Progress: {{Object.keys(decoded_chunks).length}} /
-          {{file_metadata.chunks || 0}}
+      <div class="flex flex-col w-full items-center justify-center">
+        <div class="text-xl my-4">Mode Terima Data</div>
+        <div class="text-sm mb-2 text-center">{{ msg }}</div>
+        <div class="text-sm mb-2">
+          Diterima: {{ received }} / {{ total || 0 }} ({{ pct.toFixed(0) }}%)
+        </div>
+        <div class="w-64 h-2 bg-gray-200 mb-4">
+          <div class="h-2 bg-green-500" :style="{ width: pct + '%' }"></div>
         </div>
         <button
-          v-if="!is_receiving"
-          v-on:click="start_receiver"
+          v-if="!receiving"
+          @click="start"
           class="mb-6 p-1 border-2 border-gray-500"
         >
-          Start Receiver
+          Mulai Terima
         </button>
         <button
           v-else
-          v-on:click="stop_receiver"
+          @click="stop(false)"
           class="mb-6 p-1 border-2 border-gray-500"
         >
-          Stop Receiver
+          Berhenti
         </button>
-        <video id="videoElement" muted autoplay playsinline></video>
+        <video
+          id="videoElement"
+          class="w-full max-w-md"
+          muted
+          autoplay
+          playsinline
+        ></video>
       </div>
     </div>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@undecaf/zbar-wasm@latest/dist/index.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.0.3/pako.min.js"></script>
     <script>
-      const { createApp, ref, reactive, onMounted, computed } = Vue;
+      const { createApp, ref, computed } = Vue;
 
       createApp({
         setup() {
-          const user_message = ref("Click receive button to start receiving");
-          const decoded_chunks = ref({});
-          const total_chunks = ref(-1);
-          const file_metadata = reactive({});
-          const is_receiving = ref(false);
-          let canvas, context, videoElement;
+          const IDLE =
+            "Tekan Mulai Terima, lalu arahkan kamera ke layar pengirim";
+          const msg = ref(IDLE);
+          const receiving = ref(false);
+          const received = ref(0);
+          const total = ref(0);
+          const name = ref("");
+          const pct = computed(() =>
+            total.value ? (received.value / total.value) * 100 : 0,
+          );
 
-          const decode_data = (input_string) => {
-            const encoded_data = atob(input_string.split(",")[1]);
-            const encoded_array = Array.from(encoded_data, (char) =>
-              char.charCodeAt(0),
-            );
-            const utf8Decoder = new TextDecoder();
-            const output_string = utf8Decoder.decode(
-              new Uint8Array(encoded_array),
-            );
-            const data_array = Array.from(output_string, (char) =>
-              char.charCodeAt(0),
-            );
-            return {
-              index: parseInt(input_string.split(",")[0]),
-              data: data_array,
-            };
+          let chunks = [],
+            sid = null,
+            stream = null,
+            token = 0;
+          let video, canvas, ctx;
+
+          const resetData = () => {
+            chunks = [];
+            received.value = 0;
+            total.value = 0;
+            name.value = "";
+            sid = null;
+          };
+          const toBytes = (b64) => {
+            const bin = atob(b64);
+            const u = new Uint8Array(bin.length);
+            for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+            return u;
           };
 
-          const download_file = (data, fileName) => {
-            const blob = new Blob([data]);
-            const dummy_element = document.createElement("a");
-            const url = URL.createObjectURL(blob);
-            dummy_element.href = url;
-            dummy_element.download = fileName;
-            dummy_element.click();
-            URL.revokeObjectURL(url);
-          };
-
-          const stop_receiver = () => {
-            is_receiving.value = false;
-            decoded_chunks.value = {};
-            Object.assign(file_metadata, {});
-            user_message.value = "Click receive button to start receiving";
-          };
-
-          const start_receiver = async () => {
-            decoded_chunks.value = {};
-            is_receiving.value = true;
-            while (
-              file_metadata.chunks != Object.keys(decoded_chunks.value).length
-            ) {
-              try {
-                await new Promise((r) => setTimeout(r, 10));
-                context.drawImage(videoElement, 0, 0);
-                image_data = context.getImageData(
-                  0,
-                  0,
-                  canvas.width,
-                  canvas.height,
-                );
-                let symbols = await zbarWasm.scanImageData(image_data);
-                if (!symbols || !symbols.length) {
-                  continue;
-                }
-                let decoded_data = symbols[0].decode();
-                if (decoded_data.includes("chunks")) {
-                  Object.assign(file_metadata, JSON.parse(decoded_data));
-                  decoded_chunks.value = {};
-                  user_message.value = `Transferring file: ${file_metadata.name}`;
-                } else if (decoded_data.split(",").length == 2) {
-                  let raw_data = decode_data(decoded_data);
-                  decoded_chunks.value[raw_data["index"]] = raw_data["data"];
-                }
-                window.decoded_chunks = decoded_chunks.value;
-              } catch (error) {
-                console.error("Error in Loop: ", error);
-              }
-              if (!is_receiving.value) {
-                Object.assign(file_metadata, {});
-                decoded_chunks.value = {};
-                user_message.value = "Click receive button to start receiving";
-                return true;
+          const handle = (text) => {
+            const p = text.split("|");
+            if (p[0] !== "M" && p[0] !== "D") return;
+            if (sid !== p[1]) {
+              resetData();
+              sid = p[1];
+            } // sesi baru dari pengirim
+            if (p[0] === "M" && p.length >= 4) {
+              total.value = +p[2];
+              name.value = decodeURIComponent(p[3]);
+            } else if (p[0] === "D" && p.length === 5) {
+              const i = +p[2];
+              total.value = +p[3];
+              if (!chunks[i]) {
+                chunks[i] = toBytes(p[4]);
+                received.value++;
               }
             }
-            user_message.value = "Data Transfer Complete";
-            output_array = [];
-            for (let i = 0; i < file_metadata.chunks; i++) {
-              output_array = output_array.concat(decoded_chunks.value[i]);
+          };
+
+          const finish = () => {
+            let len = 0;
+            for (let i = 0; i < total.value; i++) len += chunks[i].length;
+            const all = new Uint8Array(len);
+            let off = 0;
+            for (let i = 0; i < total.value; i++) {
+              all.set(chunks[i], off);
+              off += chunks[i].length;
             }
-            let output_unit8array = Uint8Array.from(output_array);
-            window.output_unit8array = output_unit8array;
-            let infalted_array = pako.inflate(window.output_unit8array);
-            download_file(infalted_array, file_metadata.name);
-            stop_receiver();
+            const blob = new Blob([pako.inflate(all)]);
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = name.value || `file-${sid}`;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => {
+              URL.revokeObjectURL(a.href);
+              a.remove();
+            }, 1000);
+            stop(true);
+            msg.value = "Transfer selesai, file diunduh";
           };
 
-          onMounted(async () => {
-            console.log("Application Initialized ...");
-            videoElement = document.getElementById("videoElement");
-            videoElement.srcObject = await navigator.mediaDevices.getUserMedia({
-              video: { facingMode: "environment" },
-            });
-            canvas = document.createElement("canvas");
-            context = canvas.getContext("2d");
-            await new Promise((r) => setTimeout(r, 2000));
-            canvas.height = videoElement.videoHeight;
-            canvas.width = videoElement.videoWidth;
-            context.drawImage(videoElement, 0, 0);
-          });
-
-          return {
-            user_message,
-            start_receiver,
-            is_receiving,
-            file_metadata,
-            decoded_chunks,
-            stop_receiver,
+          const stop = (keepMsg) => {
+            token++;
+            receiving.value = false;
+            if (stream) stream.getTracks().forEach((t) => t.stop());
+            stream = null;
+            if (!keepMsg) {
+              msg.value = IDLE;
+              resetData();
+            }
           };
+
+          const loop = async (id) => {
+            while (id === token) {
+              if (video.readyState >= 2 && video.videoWidth) {
+                // perkecil gambar agar scan jauh lebih cepat
+                const k = Math.min(1, 800 / video.videoWidth);
+                const w = Math.round(video.videoWidth * k),
+                  h = Math.round(video.videoHeight * k);
+                if (canvas.width !== w) {
+                  canvas.width = w;
+                  canvas.height = h;
+                }
+                ctx.drawImage(video, 0, 0, w, h);
+                try {
+                  const syms = await zbarWasm.scanImageData(
+                    ctx.getImageData(0, 0, w, h),
+                  );
+                  for (const sym of syms) handle(sym.decode());
+                } catch (e) {
+                  console.error(e);
+                }
+                if (
+                  id === token &&
+                  total.value > 0 &&
+                  received.value === total.value &&
+                  name.value
+                ) {
+                  finish();
+                  return;
+                }
+              }
+              await new Promise((r) => requestAnimationFrame(r));
+            }
+          };
+
+          const start = async () => {
+            try {
+              resetData();
+              video = document.getElementById("videoElement");
+              canvas = document.createElement("canvas");
+              ctx = canvas.getContext("2d", { willReadFrequently: true });
+              stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: "environment" },
+              });
+              video.srcObject = stream;
+              await video.play();
+              receiving.value = true;
+              msg.value =
+                "Menerima data ... biarkan kamera tetap mengarah ke layar pengirim";
+              loop(++token);
+            } catch (e) {
+              msg.value = "Gagal membuka kamera: " + e.message;
+            }
+          };
+
+          return { msg, receiving, received, total, pct, start, stop };
         },
       }).mount("#app");
     </script>
