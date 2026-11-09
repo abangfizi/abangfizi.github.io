@@ -199,7 +199,7 @@
           await response.text();
           logMessage("Fetch success ✓", "success");
           stopInterval();
-          startInterval(30000);
+          startInterval(15000);
         } catch (error) {
           clearTimeout(timeoutId);
 
@@ -219,7 +219,7 @@
       /* ===============================
          INTERVAL CONTROL
       =============================== */
-      function startInterval(delay = 30000) {
+      function startInterval(delay = 15000) {
         if (intervalId) return;
         logMessage(`Auto fetch setiap ${delay / 1000}s`, "info");
         intervalId = setInterval(() => fetchWithTimeout(), delay);
